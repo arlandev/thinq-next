@@ -84,7 +84,7 @@ return (
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="lastName" className="text-right">Last Name</Label>
-                            <Input id="lastName" name="lastName" className="col-span-3" alue={form.lastname} onChange={(e) => handleInputChange(form.id, "lastname", e.target.value)} />
+                            <Input id="lastName" name="lastName" className="col-span-3" value={form.lastname} onChange={(e) => handleInputChange(form.id, "lastname", e.target.value)} />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="email" className="text-right">Email Address</Label>
