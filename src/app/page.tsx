@@ -1,7 +1,9 @@
 import Image from "next/image";
+import Footer from "@/components/common/footer";
 
 export default function Home() {
   return (
+    <>
     <div className="bg-black/65 bg-[url(/images/ust.jpg)] bg-blend-overlay bg-center">
       <div className="h-160 grid grid-cols-6 content-center inset-x-0 max-w-max mx-auto">
         <div className="h-100 left-content col-span-2 col-start-2">
@@ -60,5 +62,7 @@ export default function Home() {
         </div>
       </div>
     </div>
+    <Footer />
+    </>
   );
 }

@@ -1,4 +1,5 @@
 // TODO: add update logic
+"use client";
 
 import { Button } from "@/components/ui/button";
 
@@ -17,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 interface User {
-    id: string,
+    id: number,
     name: string,
     email: string
 }
