@@ -25,10 +25,9 @@ interface User {
 interface EditDialogProps {
     user: User,
     onSave: (updatedUser: User) => void,
-    children: React.ReactNode;
 }
 
-function EditDialog( { user, onSave, children } : EditDialogProps ) {
+function EditDialog( { user, onSave } : EditDialogProps ) {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: user.name,

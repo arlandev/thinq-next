@@ -1,4 +1,6 @@
-export default function AdminHome(): any {
+import type { JSX } from "react";
+
+export default function AdminHome(): JSX.Element {
     return (
         <>
             Admin Page

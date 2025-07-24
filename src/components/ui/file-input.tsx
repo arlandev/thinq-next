@@ -22,7 +22,7 @@ const FileInput = React.forwardRef<HTMLInputElement, FileInputProps>(
     const inputRef = React.useRef<HTMLInputElement>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newlySelectedFiles = Array.from(e.target.files || []);
+      const newlySelectedFiles = Array.from(e.target.files ?? []);
       const updatedFiles = [...files, ...newlySelectedFiles];
 
       const uniqueFiles = updatedFiles.reduce<File[]>((acc, current) => {

@@ -1,4 +1,6 @@
-export default function DispatcherHome(): any {
+import type { JSX } from "react";
+
+export default function DispatcherHome(): JSX.Element {
     return (
         <>
             Dispatcher Page

@@ -12,7 +12,7 @@ interface DateInputProps {
   id?: string;
   className?: string;
   // Allow any other input props to be passed through
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export function DateInput({

@@ -1,4 +1,6 @@
-export default function InquirerHome(): any {
+import type { JSX } from "react";
+
+export default function InquirerHome(): JSX.Element {
     return (
         <>
             Inquirer Page

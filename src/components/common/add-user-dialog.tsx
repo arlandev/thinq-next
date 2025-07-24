@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import type { JSX } from "react";
 
 import { CirclePlus } from "lucide-react";
 
@@ -16,7 +17,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DateInput } from "@/components/ui/dateinput";
 
-export default function AddUserDialog(user: any) {
+type AddUserDialogProps = {
+  addType: string;
+}
+
+export default function AddUserDialog( {addType}: AddUserDialogProps): JSX.Element {
   const [newUser, setNewUser] = useState([
     {
       id: Date.now(),
@@ -41,13 +46,13 @@ export default function AddUserDialog(user: any) {
     setNewUser([...newUser, newUserForm]);
   };
 
-  const removeUserForm = (id: any) => {
+  const removeUserForm = (id: number) => {
     if (newUser.length > 1) {
       setNewUser(newUser.filter((newUser) => newUser.id !== id));
     }
   };
 
-  const handleInputChange = (id: any, field: any, value: any) => {
+  const handleInputChange = (id: number, field: string, value: string) => {
     setNewUser(
       newUser.map((newUser) =>
         newUser.id === id ? { ...newUser, [field]: value } : newUser,
@@ -55,7 +60,7 @@ export default function AddUserDialog(user: any) {
     );
   };
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log("Users to added to database:", newUser);
     // add to database
@@ -68,7 +73,7 @@ return (
         </DialogTrigger>
         <DialogContent className="sm:max-w-1/2">
             <DialogHeader>
-            <DialogTitle>ADD {user.addType.toUpperCase()}</DialogTitle>
+            <DialogTitle>ADD {addType.toUpperCase()}</DialogTitle>
             <DialogDescription>
                 This action will add a user to our database.
             </DialogDescription>
@@ -95,7 +100,7 @@ return (
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="dob" className="text-right">Date of Birth</Label>
-                            <DateInput name="dob" id="dob" value={form.dob} onChange={(value: any) => handleInputChange(form.id, "dob", value)} />
+                            <DateInput name="dob" id="dob" value={form.dob} onChange={(value: string) => handleInputChange(form.id, "dob", value)} />
                             <Button className="col-start-4 bg-red-700 hover:bg-red-600 cursor-pointer" disabled={!isAddMany} onClick={() => removeUserForm(form.id)}>Remove</Button>
                         </div>
                         <hr className={!isAddMany ? "hidden" : "mt-6 h-px border-t-0 bg-transparent bg-gradient-to-r from-transparent via-neutral-500 to-transparent opacity-25 dark:via-neutral-400"}/>

@@ -1,6 +1,5 @@
 import React from "react";
 import Footer from "@/components/common/footer";
-import NavBar from "./navbar";
 
 interface PageLayoutProps {
     children: React.ReactNode,
