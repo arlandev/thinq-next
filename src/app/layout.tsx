@@ -27,7 +27,7 @@ export default function RootLayout({
     <html lang="en" className={`${geist.variable}`}>
       <body>
         <TRPCReactProvider>
-          <PageLayout navbar={<NavBar />}>{children}</PageLayout>
+          {children}
         </TRPCReactProvider>
       </body>
     </html>

@@ -1,11 +1,6 @@
 import Link from "next/link";
 
-interface FooterProps {
-  backgroundImage?: string;
-  background?: string;
-}
-
-export default function Footer({ backgroundImage, background }: FooterProps) {
+export default function Footer() {
   return (
     <footer className="bg-zinc-100">
       <div className="mx-auto w-full max-w-screen-xl p-2 md:py-4">

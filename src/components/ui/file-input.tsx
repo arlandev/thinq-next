@@ -15,7 +15,7 @@ interface FileInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement
 
 const FileInput = React.forwardRef<HTMLInputElement, FileInputProps>(
   (
-    { className, onChange, onRemove, value, multiple = true, ...props },
+    { className, onChange, onRemove, value: _value, multiple = true, ...props },
     ref,
   ) => {
     const [files, setFiles] = React.useState<File[]>([]);

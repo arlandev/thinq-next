@@ -1,11 +1,15 @@
+import Image from "next/image";
+
 export default function Home() {
   return (
     <div className="bg-black/65 bg-[url(/images/ust.jpg)] bg-blend-overlay bg-center">
       <div className="h-160 grid grid-cols-6 content-center inset-x-0 max-w-max mx-auto">
         <div className="h-100 left-content col-span-2 col-start-2">
-          <img
+          <Image
             src="/images/stthomas.jpg"
-            alt=""
+            alt="St. Thomas"
+            width={400}
+            height={400}
             className="object-cover object-center h-full rounded-l-2xl"
           />
         </div>
