@@ -21,6 +21,8 @@ import {
 import EditDialog from "@/components/common/edit-dialog";
 import BatchDeactivateDialog from "@/components/common/batch-deactivate-dialog";
 
+import { addUser } from "@/app/actions/addUser";
+
 // sample users for testing
 const users = [
   {
@@ -139,7 +141,7 @@ function InquirerAccountsPage() {
           </div>
         </div>
         <div className="flex justify-center gap-10 mt-5">
-          <AddUserDialog addType="inquirer" />
+          <AddUserDialog addType="inquirer" addUser={ addUser }/>
           <BatchDeactivateDialog users={users} />
         </div>
       </div>

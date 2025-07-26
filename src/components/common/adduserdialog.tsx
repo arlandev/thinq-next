@@ -57,8 +57,9 @@ export default function AddUserDialog(user: any) {
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
-    console.log("Users to added to database:", newUser);
-    // add to database
+    newUser.forEach(async (user) => {
+      console.log("User added to database:", user);
+    });
   };
 
 return (
