@@ -27,7 +27,7 @@ export default function NavBar({ navBarLink, navBarLinkName }: NavbarProps) {
             </Link>
           )}
           <Link
-            href="/logout"
+            href="/"
             className="font-sub font-bold transition-all duration-300 hover:text-zinc-500"
           >
             Logout
