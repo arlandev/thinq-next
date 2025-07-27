@@ -1,7 +1,49 @@
+"use client";
+
 import Image from "next/image";
 import Footer from "@/components/common/footer";
+import { useRouter } from "next/navigation";
+
+import { readUser } from "./actions/readUser";
+import { useState } from "react";
 
 export default function Home() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const user = await readUser(username, password);
+
+    if (user) {
+      // check user role, then push route to appropriate page depending on role
+      const userRole = user.role.toLowerCase();
+
+      switch (userRole) {
+        case "admin":
+          router.push("/admin");
+          break;
+        case "inquirer":
+          router.push("/inquirer");
+          break;
+        case "personnel":
+          router.push("/personnel");
+          break;
+        case "dispatcher":
+          router.push("/dispatcher");
+          break;
+        default:
+          alert("Invalid username or password");
+      }
+    } else {
+      // show error message
+      alert("Invalid username or password");
+    }
+
+  };
+
   return (
     <>
     <div className="bg-black/65 bg-[url(/images/ust.jpg)] bg-blend-overlay bg-center">
@@ -27,7 +69,7 @@ export default function Home() {
           </div>
 
           <form
-            action="/"
+            onSubmit={handleSubmit}
             className="w-2/3 flex flex-col py-5 justify-self-center"
           >
             <label htmlFor="username" className="py-1 font-sub">
@@ -37,6 +79,7 @@ export default function Home() {
               type="text"
               id="username"
               className="outline mb-2 rounded-xs p-1 bg-black/10"
+              onChange={(e) => setUsername(e.target.value)}
             />
 
             <label htmlFor="password" className="py-1 mb-2">
@@ -46,6 +89,7 @@ export default function Home() {
               type="password"
               id="password"
               className="outline mb-2 rounded-xs p-1 bg-black/10"
+              onChange={(e) => setPassword(e.target.value)}
             />
 
             <a href="" className="text-xs underline italic">
