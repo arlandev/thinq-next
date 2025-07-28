@@ -54,8 +54,30 @@ const users = [
   },
 ];
 
+interface InquirerUser {
+  id: number;
+  user_email: string;
+  user_firstname: string;
+  user_lastname: string;
+  user_type: string;
+  user_affiliation: string;
+  user_status: string;
+}
+
+// user_email       String     @unique
+//   user_firstname   String
+//   user_lastname    String
+//   user_dob         DateTime   @db.Date
+//   user_status      UserStatus @default(ACTIVE)
+//   user_password    String
+//   user_role        UserRole
+//   user_type        UserType
+//   user_affiliation String
+
 function InquirerAccountsPage() {
   // TODO: Add Edit Dialog
+
+  const [inquirerUsers, setInquirerUsers] = useState<InquirerUser[]>([]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -63,6 +85,7 @@ function InquirerAccountsPage() {
         const users = await readInquirerUsers();
         console.log("Fetched inquirer users:", users);
         toast.success("Users loaded successfully");
+        setInquirerUsers(users as unknown as InquirerUser[]);
       } catch (error) {
         console.error("Error fetching inquirer users:", error);
         toast.error("Failed to load users");
@@ -105,58 +128,41 @@ function InquirerAccountsPage() {
                 <TableRow>
                   <TableHead className="w-1/12"></TableHead>
                   <TableHead className="w-1/12">User ID</TableHead>
-                  <TableHead className="w-2/12">Name</TableHead>
                   <TableHead className="w-3/12">Email</TableHead>
-                  <TableHead className="w-2/12">Role</TableHead>
+                  <TableHead className="w-1/12">First Name</TableHead>
+                  <TableHead className="w-1/12">Last Name</TableHead>
+                  <TableHead className="w-2/12">Type</TableHead>
+                  <TableHead className="w-1/12">Affiliation</TableHead>
                   <TableHead className="w-1/12">Status</TableHead>
                   <TableHead className="w-3/12 text-right"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody className="h-full">
-                <TableRow>
-                  <TableCell>
-                    <EditDialog
-                      user={{
-                        id: 1,
-                        name: "John Doe",
-                        email: "john.doe@ust.edu.ph",
-                      }}
-                      onSave={(updatedUser: unknown) => {
-                        console.log("User updated:", updatedUser);
-                        // TODO: update logic
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">00001</TableCell>
-                  <TableCell>John Doe</TableCell>
-                  <TableCell>john.doe@ust.edu.ph</TableCell>
-                  <TableCell>Student</TableCell>
-                  <TableCell>Active</TableCell>
-                  <TableCell className="text-right">
-                    <DeactivateButton
-                      disable={true}
-                      inquirerName="John Doe"
-                      inquirerEmail="john.doe@ust.edu.ph"
-                    />
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>
-                    <Button>Edit</Button>
-                  </TableCell>
-                  <TableCell className="font-medium">00002</TableCell>
-                  <TableCell>Mark Cruz</TableCell>
-                  <TableCell>mark.cruz@ust.edu.ph</TableCell>
-                  <TableCell>Staff</TableCell>
-                  <TableCell>Inactive</TableCell>
-                  <TableCell className="text-right">
-                    <DeactivateButton
-                      disable={false}
-                      inquirerName="Mark Cruz"
-                      inquirerEmail="mark.cruz@ust.edu.ph"
-                    />
-                  </TableCell>
-                </TableRow>
+                {inquirerUsers.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>
+                      <EditDialog user={{
+                        id: user.id,
+                        name: `${user.user_firstname} ${user.user_lastname}`,
+                        email: user.user_email,
+                      }} />
+                    </TableCell>
+                    <TableCell>{user.id}</TableCell>
+                    <TableCell>{user.user_email}</TableCell>
+                    <TableCell>{user.user_firstname}</TableCell>
+                    <TableCell>{user.user_lastname}</TableCell>
+                    <TableCell>{user.user_type}</TableCell>
+                    <TableCell>{user.user_affiliation}</TableCell>
+                    <TableCell>{user.user_status}</TableCell>
+                    <TableCell className="text-right">
+                      <DeactivateButton
+                        disable={user.user_status === "INACTIVE"}
+                        inquirerName={`${user.user_firstname} ${user.user_lastname}`}
+                        inquirerEmail={user.user_email}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </div>

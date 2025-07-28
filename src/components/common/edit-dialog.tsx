@@ -25,7 +25,7 @@ interface User {
 
 interface EditDialogProps {
     user: User,
-    onSave: (updatedUser: User) => void,
+    onSave?: (updatedUser: User) => void,
 }
 
 function EditDialog( { user, onSave } : EditDialogProps ) {
