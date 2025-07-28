@@ -17,6 +17,7 @@ model Post {
   @@index([name])
 }
 
+
 model User {
   id               Int        @id @default(autoincrement())
   user_email       String     @unique
@@ -49,4 +50,49 @@ enum UserRole {
 enum UserType {
   STUDENT
   EMPLOYEE
+}
+
+
+model Concern {
+  concern_id      Int       @id @default(autoincrement())
+  concern_title   String    
+  concern_faq     String[]  
+}
+
+
+model Ticket {
+  ticket_id             Int        @id @default(autoincrement())
+  ticket_submitteddate  DateTime   @default(now())
+  ticket_assigneddate   DateTime   @db.Date
+  user                  User       @relation(fields: [ticket_inquirefname, ticket_inquirerlname, ticket_assigneefname, ticket_assigneelname], references:[user_firstname, user_lastname, user_firsname, user_lastname])
+  ticket_inquirerfname  String
+  ticket_inquirerlname  String
+  concern               concern    @relation(fields: [ticket_concern], references:[concern_title])
+  ticket_concern        String
+  ticket_subconcern     String
+  ticket_details        String
+  ticket_attachment     String[]?
+  ticket_assigneefname  String?
+  ticket_assigneelname  String?
+  ticket_status         TicketStatus @default(NEW)
+  ticket_resolution     String?
+  ticket_rating         Int?
+
+  @@map("tickets")
+}
+
+enum TicketStatus {
+  NEW
+  OPEN
+  CLOSED
+}
+
+model Message {
+  message_id            Int        @id @default(autoincrement())
+  message_convoid       Int
+  user                  User       @relation(fields:[message_senderfname, message_senderlname],referneces:[user_firsname,user_lastname])
+  message_senderfname   String
+  message_senderlname   String    
+  message_content       String[]
+  message_attachment    String[]?
 }

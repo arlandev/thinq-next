@@ -12,6 +12,10 @@ import {
 
 import { Button } from "@/components/ui/button";
 
+interface Ticket {
+  ticket_id: number,
+}
+
 function PersonnelHomePage() {
   return (
     <PageLayout navbar={<NavBar navBarLink="/inbox" navBarLinkName="Inbox" />}>
