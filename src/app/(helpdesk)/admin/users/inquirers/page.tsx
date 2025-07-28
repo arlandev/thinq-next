@@ -12,7 +12,7 @@ import AccountsPageTitle from "@/components/common/accounts-page-title";
 import AddUserDialog from "@/components/common/add-user-dialog";
 
 import { Button } from "@/components/ui/button";
-import DeactivateButton from "@/components/common/deactivate-button";
+// import DeactivateButton from "@/components/common/deactivate-button";
 import {
   Table,
   TableBody,
@@ -22,8 +22,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import EditDialog from "@/components/common/edit-dialog";
+// import EditDialog from "@/components/common/edit-dialog";
 import BatchDeactivateDialog from "@/components/common/batch-deactivate-dialog";
+
+import UserList from "@/components/common/list-users";
 
 import { addUser } from "@/app/actions/addUser";
 import { readInquirerUsers } from "@/app/actions/adminReadInquirers";
@@ -128,31 +130,7 @@ function InquirerAccountsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody className="h-full">
-                {inquirerUsers.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <EditDialog user={{
-                        id: user.id,
-                        name: `${user.user_firstname} ${user.user_lastname}`,
-                        email: user.user_email,
-                      }} />
-                    </TableCell>
-                    <TableCell>{user.id}</TableCell>
-                    <TableCell>{user.user_email}</TableCell>
-                    <TableCell>{user.user_firstname}</TableCell>
-                    <TableCell>{user.user_lastname}</TableCell>
-                    <TableCell>{user.user_type}</TableCell>
-                    <TableCell>{user.user_affiliation}</TableCell>
-                    <TableCell>{user.user_status}</TableCell>
-                    <TableCell className="text-right">
-                      <DeactivateButton
-                        disable={user.user_status === "INACTIVE"}
-                        inquirerName={`${user.user_firstname} ${user.user_lastname}`}
-                        inquirerEmail={user.user_email}
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))}
+                <UserList users={inquirerUsers} user_role="INQUIRER"/>
               </TableBody>
             </Table>
           </div>
