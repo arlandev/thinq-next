@@ -1,5 +1,9 @@
+// TODO: Add affiliation field to the form
+
 'use client';
 
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import PageLayout from "@/components/common/page-layout";
 import WelcomeText from "@/components/common/welcome-text";
 import NavBar from "@/components/common/navbar";
@@ -22,6 +26,8 @@ import EditDialog from "@/components/common/edit-dialog";
 import BatchDeactivateDialog from "@/components/common/batch-deactivate-dialog";
 
 import { addUser } from "@/app/actions/addUser";
+import { readInquirerUsers } from "@/app/actions/adminReadInquirers";
+
 
 // sample users for testing
 const users = [
@@ -50,6 +56,21 @@ const users = [
 
 function InquirerAccountsPage() {
   // TODO: Add Edit Dialog
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const users = await readInquirerUsers();
+        console.log("Fetched inquirer users:", users);
+        toast.success("Users loaded successfully");
+      } catch (error) {
+        console.error("Error fetching inquirer users:", error);
+        toast.error("Failed to load users");
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   return (
     <PageLayout navbar={<NavBar navBarLink="" navBarLinkName="" />}>
@@ -141,7 +162,17 @@ function InquirerAccountsPage() {
           </div>
         </div>
         <div className="flex justify-center gap-10 mt-5">
-          <AddUserDialog addType="inquirer" addUser={ addUser }/>
+          <AddUserDialog addType="inquirer" addUser={async (email, firstname, lastname, dob, role, type) => {
+            try {
+              const result = await addUser(email, firstname, lastname, dob, role, type, "CICS");
+              toast.success("User added successfully");
+              return result;
+            } catch (error) {
+              console.error("Error adding user:", error);
+              toast.error("Failed to add user");
+              throw error;
+            }
+          }}/>
           <BatchDeactivateDialog users={users} />
         </div>
       </div>

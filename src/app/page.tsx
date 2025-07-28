@@ -19,7 +19,8 @@ export default function Home() {
 
     if (user) {
       // check user role, then push route to appropriate page depending on role
-      const userRole = user.role.toLowerCase();
+      const userRole = user.user_role.toLowerCase();
+      console.log(userRole);
 
       switch (userRole) {
         case "admin":

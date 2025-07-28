@@ -8,6 +8,7 @@ import { TRPCReactProvider } from "@/trpc/react";
 import NavBar from "@/components/common/navbar";
 
 import PageLayout from "@/components/common/page-layout";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "ThInq",
@@ -28,6 +29,7 @@ export default function RootLayout({
       <body>
         <TRPCReactProvider>
           {children}
+          <Toaster />
         </TRPCReactProvider>
       </body>
     </html>

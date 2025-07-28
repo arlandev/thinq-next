@@ -21,7 +21,7 @@ import { DateInput } from "@/components/ui/dateinput";
 
 type AddUserDialogProps = {
   addType: string;
-  addUser: (username: string, password: string, role: string) => Promise<any>;
+  addUser: (email: string, firstname: string, lastname: string, dob: string, role: number, type: number) => Promise<any>;
 }
 
 export default function AddUserDialog( {addType, addUser}: AddUserDialogProps): JSX.Element {
@@ -65,14 +65,25 @@ export default function AddUserDialog( {addType, addUser}: AddUserDialogProps): 
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Users to added to database:", newUser);
+    console.log("User to be added to database:", newUser);
     newUser.forEach(async (user) => {
-      const username = user.firstname + user.lastname;
-      const password = "password"; // for dev testing ONLY
-      const role = "inquirer"
-      await addUser(username, password, role);
+
+      // TODO: Add role, type, affiliation fields to the form
+
+      const user_email = user.email
+      const user_firstname = user.firstname
+      const user_lastname = user.lastname
+      const user_dob = user.dob
+      const user_role = 1
+      const user_type = 1
+
+      const successfulAdd = await addUser(user_email, user_firstname, user_lastname, user_dob, user_role, user_type);
+      if (successfulAdd) {
+        console.log("User added to database:", successfulAdd);
+      } else {
+        console.log("User not added to database:", successfulAdd);
+      }
     });
-    // add to database
   };
 
 return (
