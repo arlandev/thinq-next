@@ -8,7 +8,7 @@ import Link from "next/link";
 
 export default function AdminHome() {
   return (
-    <PageLayout navbar={<NavBar />}>
+    <PageLayout navbar={<NavBar navBarLink="/admin" navBarLinkName="Home" />}>
       <div className="flex justify-between items-start mb-8">
         <WelcomeText firstName="Athena" lastName="Patricio" />
         <Button className="flex items-center gap-2">
@@ -51,7 +51,7 @@ export default function AdminHome() {
         </div>
 
         <div className="col-span-1 col-start-4 justify-self-center w-full">
-          <Link href="/admin/users/personnel">
+          <Link href="/admin/users/personnels">
             <Card className="h-75 cursor-pointer hover:bg-gray-100 shadow-lg">
               <CardContent className="mx-auto my-auto">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-30">

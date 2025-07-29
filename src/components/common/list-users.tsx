@@ -23,7 +23,6 @@ import BatchDeactivateDialog from "@/components/common/batch-deactivate-dialog";
 import DeactivateButton from "./deactivate-button";
 import EditDialog from "./edit-dialog";
 
-import { addUser } from "@/app/actions/addUser";
 import { readUsers } from "@/app/actions/adminReadUsers";
 
 
@@ -73,22 +72,32 @@ export default function UserList({user_role}:UserListProps) {
   const [completeUsers, setCompleteUsers] = useState<User[]>([]);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchUsers = async () => {
       try {
         const users = await readUsers();
-        toast.success("Users loaded successfully");
-        setCompleteUsers(users as unknown as User[]);
+        if (isMounted) {
+          setCompleteUsers(users as unknown as User[]);
+          toast.success("Users loaded successfully");
+        }
       } catch (error) {
         console.error("Error fetching users:", error);
-        toast.error("Failed to load users");
+        if (isMounted) {
+          toast.error("Failed to load users");
+        }
       }
     };
 
     fetchUsers();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return (
-    <PageLayout navbar={<NavBar navBarLink="" navBarLinkName="" />}>
+    <PageLayout navbar={<NavBar navBarLink="/admin" navBarLinkName="Home" />}>
       <div className="flex justify-between items-start mb-8">
         <WelcomeText firstName="First" lastName="Last" />
         <Button className="flex items-center gap-2">
@@ -149,17 +158,23 @@ export default function UserList({user_role}:UserListProps) {
           </div>
         </div>
         <div className="flex justify-center gap-10 mt-5">
-          <AddUserDialog addType={user_role} addUser={async (email, firstname, lastname, dob, role, type) => {
-            try {
-              const result = await addUser(email, firstname, lastname, dob, role, type, "CICS");
-              toast.success("User added successfully");
-              return result;
-            } catch (error) {
-              console.error("Error adding user:", error);
-              toast.error("Failed to add user");
-              throw error;
-            }
-          }}/>
+          <AddUserDialog 
+            addType={user_role} 
+            onUserAdded={() => {
+              // Refresh the users list after adding a new user
+              const fetchUsers = async () => {
+                try {
+                  const users = await readUsers();
+                  setCompleteUsers(users as unknown as User[]);
+                  toast.success("Users list refreshed");
+                } catch (error) {
+                  console.error("Error fetching users:", error);
+                  toast.error("Failed to refresh users list");
+                }
+              };
+              fetchUsers();
+            }}
+          />
           <BatchDeactivateDialog users={usersSample} />
         </div>
       </div>

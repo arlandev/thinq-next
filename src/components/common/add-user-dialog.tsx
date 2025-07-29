@@ -15,16 +15,45 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DateInput } from "@/components/ui/dateinput";
+import { toast } from "sonner";
+import { addUser } from "@/app/actions/addUser";
 
 type AddUserDialogProps = {
   addType: string;
-  addUser: (email: string, firstname: string, lastname: string, dob: string, role: number, type: number) => Promise<any>;
+  onUserAdded?: () => void;
 }
 
-export default function AddUserDialog( {addType, addUser}: AddUserDialogProps): JSX.Element {
+const affiliationList = [
+  {
+    value: "CICS",
+    label: "College of Information and Computing Sciences"
+  },
+  {
+    value: "CTHM",
+    label: "College of Tourism and Hospitality Management"
+  },
+  {
+    value: "AMV-COA",
+    label: "AMV College of Accountancy"
+  },
+  {
+    value: "COE",
+    label: "College of Engineering"
+  },
+]
+
+export default function AddUserDialog( {addType, onUserAdded}: AddUserDialogProps): JSX.Element {
   const [newUser, setNewUser] = useState([
     {
       id: Date.now(),
@@ -32,6 +61,8 @@ export default function AddUserDialog( {addType, addUser}: AddUserDialogProps): 
       lastname: "",
       email: "",
       dob: "",
+      type: "",
+      affiliation: "",
     },
   ]);
 
@@ -44,6 +75,8 @@ export default function AddUserDialog( {addType, addUser}: AddUserDialogProps): 
       lastname: "",
       email: "",
       dob: "",
+      type: "",
+      affiliation: "",
     };
 
     setNewUser([...newUser, newUserForm]);
@@ -63,27 +96,65 @@ export default function AddUserDialog( {addType, addUser}: AddUserDialogProps): 
     );
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log("User to be added to database:", newUser);
-    newUser.forEach(async (user) => {
+    
+    try {
+      for (const user of newUser) {
+        // TODO: Add role, type, affiliation fields to the form
+        const userType = addType.toLowerCase();
 
-      // TODO: Add role, type, affiliation fields to the form
+        let user_role: number;
+        switch (userType) {
+          case "inquirer":
+            user_role = 1;
+            break;
+          case "dispatcher":
+            user_role = 2;
+            break;
+          case "personnel":
+            user_role = 3;
+            break;
+          default:
+            user_role = 1;
+            break;
+        }
 
-      const user_email = user.email
-      const user_firstname = user.firstname
-      const user_lastname = user.lastname
-      const user_dob = user.dob
-      const user_role = 1
-      const user_type = 1
+        let inquirer_type: number = 0;
+        switch (user.type) {
+          case "Student":
+            inquirer_type = 1;
+            break;
+          case "Employee":
+            inquirer_type = 2;
+            break;
+          default:
+            inquirer_type = 0;
+            break;
+        }
 
-      const successfulAdd = await addUser(user_email, user_firstname, user_lastname, user_dob, user_role, user_type);
-      if (successfulAdd) {
-        console.log("User added to database:", successfulAdd);
-      } else {
-        console.log("User not added to database:", successfulAdd);
+        const user_email = user.email;
+        const user_firstname = user.firstname;
+        const user_lastname = user.lastname;
+        const user_dob = user.dob;
+        const user_type = inquirer_type;
+        const user_affiliation = user.affiliation;
+
+        const successfulAdd = await addUser(user_email, user_firstname, user_lastname, user_dob, user_role, user_type, user_affiliation);
+        if (successfulAdd) {
+          console.log("User added to database:", successfulAdd);
+        } else {
+          console.log("User not added to database:", successfulAdd);
+        }
       }
-    });
+      
+      toast.success("User(s) added successfully");
+      onUserAdded?.(); // Call the callback to refresh the list
+    } catch (error) {
+      console.error("Error adding user:", error);
+      toast.error("Failed to add user");
+    }
   };
 
 return (
@@ -118,11 +189,51 @@ return (
                                 <div className="dark:bg-input/30 border-input flex h-9 rounded-r-md border border-l-0 bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] text-gray-500 group-hover:border-gray-400">@ust.edu.ph</div>
                             </div>
                         </div>
+
+                        
+
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="affiliation" className="text-right">Affiliation</Label>
+                            <Select 
+                              value={form.affiliation} 
+                              onValueChange={(value) => handleInputChange(form.id, "affiliation", value)}
+                            >
+                              <SelectTrigger className="col-span-3">
+                                <SelectValue placeholder="Select affiliation" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {affiliationList.map((affiliation) => (
+                                  <SelectItem key={affiliation.value} value={affiliation.value}>{affiliation.label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                        </div>
+
+
+                        { addType == "INQUIRER" && (
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="type" className="text-right">Inquirer Type</Label>
+                            <Select 
+                              value={form.type} 
+                              onValueChange={(value) => handleInputChange(form.id, "type", value)}
+                            >
+                              <SelectTrigger className="col-span-3">
+                                <SelectValue placeholder="Select type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Student">Student</SelectItem>
+                                <SelectItem value="Employee">Employee</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="dob" className="text-right">Date of Birth</Label>
                             <DateInput name="dob" id="dob" value={form.dob} onChange={(value: string) => handleInputChange(form.id, "dob", value)} />
                             <Button className="col-start-4 bg-red-700 hover:bg-red-600 cursor-pointer" disabled={!isAddMany} onClick={() => removeUserForm(form.id)}>Remove</Button>
                         </div>
+
                         <hr className={!isAddMany ? "hidden" : "mt-6 h-px border-t-0 bg-transparent bg-gradient-to-r from-transparent via-neutral-500 to-transparent opacity-25 dark:via-neutral-400"}/>
                     </div>
                     ))}
