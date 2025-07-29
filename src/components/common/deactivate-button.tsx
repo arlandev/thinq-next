@@ -15,11 +15,11 @@ import { Label } from "@/components/ui/label";
 
 interface deactivateProps {
     disable: boolean,
-    inquirerName: string,
-    inquirerEmail: string
+    userName: string,
+    userEmail: string
 }
 
-function DeactivateButton( { disable, inquirerName, inquirerEmail } : deactivateProps ) {
+function DeactivateButton( { disable, userName, userEmail } : deactivateProps ) {
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -50,7 +50,7 @@ function DeactivateButton( { disable, inquirerName, inquirerEmail } : deactivate
             </Label>
             <Input
               id="name"
-              defaultValue={inquirerName}
+              defaultValue={userName}
               className="col-span-3"
               disabled
             />
@@ -61,7 +61,7 @@ function DeactivateButton( { disable, inquirerName, inquirerEmail } : deactivate
             </Label>
             <Input
               id="email"
-              defaultValue={inquirerEmail}
+              defaultValue={userEmail}
               className="col-span-3"
               disabled
             />

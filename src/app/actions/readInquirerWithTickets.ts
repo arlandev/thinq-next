@@ -4,12 +4,7 @@ import { PrismaClient, UserRole } from "@prisma/client";
 
 const prisma = new PrismaClient();  
 
-export async function readInquirerUsers() {
-    const users = await prisma.user.findMany({
-        where: {
-            user_role: UserRole.INQUIRER,
-        },
-    });
+export async function readInquirerWithTickets() {
 
     const usersWithTickets = await prisma.user.findMany({
         where: {
@@ -23,7 +18,7 @@ export async function readInquirerUsers() {
         }
     });
 
-    console.log("Users with submitted tickets:", usersWithTickets);
+    // console.log("Users with submitted tickets:", usersWithTickets);
 
-    return users;
+    return usersWithTickets;
 }
