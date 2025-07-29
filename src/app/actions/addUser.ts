@@ -41,7 +41,7 @@ export async function addUser(email: string, firstname: string, lastname: string
 
     const user = await prisma.user.create({
         data: {
-            user_email: email,
+            user_email: email+"@ust.edu.ph",
             user_firstname: firstname,
             user_lastname: lastname,
             user_dob: new Date(dob),

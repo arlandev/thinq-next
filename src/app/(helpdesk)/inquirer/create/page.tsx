@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronsUpDown } from "lucide-react";
+import Link from "next/link";
 
 import NavBar from "@/components/common/navbar";
 import PageLayout from "@/components/common/page-layout";
@@ -35,6 +36,8 @@ import {
 } from "@/components/ui/popover";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
+
+import { submitForm } from "@/app/actions/submitForm";
 
 const concerns = [
   { concernValue: "concern1", label: "Concern 1" },
@@ -89,11 +92,20 @@ const InquiryForm = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log("Form submitted:", formData);
 
     setCurrentStep(currentStep + 1);
+
+    const result = await submitForm(formData);
+    console.log(result);
+
+    if (result) {
+      toast.success("Inquiry submitted successfully");
+    } else {
+      toast.error("Failed to submit inquiry");
+    }
 
     // Handle form submission logic here
   };
@@ -371,12 +383,13 @@ const InquiryForm = () => {
                     PREV
                   </Button>
                 ) : (
-                  <Button
-                    className="col-start-1 col-span-2 w-3/4 cursor-pointer"
-                    type="button"
-                  >
-                    GO TO INBOX
-                  </Button>
+                  <div className="col-start-1 w-3/4">
+                    <Link href="/inquirer/inbox">
+                      <Button className=" cursor-pointer" type="button">
+                        GO TO INBOX
+                      </Button>
+                    </Link>
+                  </div>
                 )}
 
                 {currentStep < sections.length - 1 ? (
@@ -398,9 +411,13 @@ const InquiryForm = () => {
                     </Button>
                   )
                 ) : (
-                  <Button className="col-start-5 cursor-pointer" type="button">
-                    CLOSE
-                  </Button>
+                  <div className="col-start-5">
+                    <Link href="/inquirer">
+                      <Button className="cursor-pointer" type="button">
+                        CLOSE
+                      </Button>
+                    </Link>
+                  </div>
                 )}
               </div>
             </CardFooter>

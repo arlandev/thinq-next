@@ -11,6 +11,19 @@ export async function readInquirerUsers() {
         },
     });
 
+    const usersWithTickets = await prisma.user.findMany({
+        where: {
+            user_role: UserRole.INQUIRER,
+            submitted_tickets: {    
+                some: {} // at least one ticket
+            }
+        },
+        include: {
+            submitted_tickets: true
+        }
+    });
+
+    console.log("Users with submitted tickets:", usersWithTickets);
 
     return users;
 }

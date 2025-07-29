@@ -32,6 +32,12 @@ model User {
   created_at       DateTime   @default(now())
   updated_at       DateTime   @updatedAt
 
+  // Tickets submitted by this user
+  submitted_tickets Ticket[]  @relation("TicketInquirer")
+  // Tickets assigned to this user
+  assigned_tickets  Ticket[]  @relation("TicketAssignee")
+  messages         Message[]
+
   @@map("users")
 }
 
@@ -57,23 +63,30 @@ model Concern {
   concern_id      Int       @id @default(autoincrement())
   concern_title   String    
   concern_faq     String[]  
+  
+  tickets         Ticket[]
 }
 
 
 model Ticket {
   ticket_id             Int        @id @default(autoincrement())
   ticket_submitteddate  DateTime   @default(now())
-  ticket_assigneddate   DateTime   @db.Date
-  user                  User       @relation(fields: [ticket_inquirefname, ticket_inquirerlname, ticket_assigneefname, ticket_assigneelname], references:[user_firstname, user_lastname, user_firsname, user_lastname])
-  ticket_inquirerfname  String
-  ticket_inquirerlname  String
-  concern               concern    @relation(fields: [ticket_concern], references:[concern_title])
+  ticket_assigneddate   DateTime?   @db.Date
+  
+  // Inquirer (submitter) relation
+  inquirer_id           Int
+  inquirer              User       @relation("TicketInquirer", fields: [inquirer_id], references: [id])
+  
+  // Assignee relation
+  assignee_id           Int?
+  assignee              User?      @relation("TicketAssignee", fields: [assignee_id], references: [id])
+  
+  concern_id            Int
+  concern               Concern    @relation(fields: [concern_id], references: [concern_id])
   ticket_concern        String
   ticket_subconcern     String
   ticket_details        String
-  ticket_attachment     String[]?
-  ticket_assigneefname  String?
-  ticket_assigneelname  String?
+  ticket_attachment     String[]
   ticket_status         TicketStatus @default(NEW)
   ticket_resolution     String?
   ticket_rating         Int?
@@ -90,9 +103,10 @@ enum TicketStatus {
 model Message {
   message_id            Int        @id @default(autoincrement())
   message_convoid       Int
-  user                  User       @relation(fields:[message_senderfname, message_senderlname],referneces:[user_firsname,user_lastname])
+  user_id               Int
+  user                  User       @relation(fields: [user_id], references: [id])
   message_senderfname   String
   message_senderlname   String    
   message_content       String[]
-  message_attachment    String[]?
+  message_attachment    String[]
 }

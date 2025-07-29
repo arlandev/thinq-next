@@ -86,7 +86,7 @@ function InquirerAccountsPage() {
     const fetchUsers = async () => {
       try {
         const users = await readInquirerUsers();
-        console.log("Fetched inquirer users:", users);
+        // console.log("Fetched inquirer users:", users);
         toast.success("Users loaded successfully");
         setInquirerUsers(users as unknown as InquirerUser[]);
       } catch (error) {
