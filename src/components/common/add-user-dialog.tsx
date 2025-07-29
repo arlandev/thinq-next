@@ -32,6 +32,7 @@ import { addUser } from "@/app/actions/addUser";
 type AddUserDialogProps = {
   addType: string;
   onUserAdded?: () => void;
+  userType: string;
 }
 
 const affiliationList = [
@@ -53,7 +54,7 @@ const affiliationList = [
   },
 ]
 
-export default function AddUserDialog( {addType, onUserAdded}: AddUserDialogProps): JSX.Element {
+export default function AddUserDialog( {addType, onUserAdded, userType}: AddUserDialogProps): JSX.Element {
   const [newUser, setNewUser] = useState([
     {
       id: Date.now(),
@@ -173,7 +174,7 @@ return (
             <form onSubmit={handleSubmit}>
                 <div className="overflow-auto h-57"> {newUser.map((form, index) => (
                     <div className="grid gap-4 py-4" key={form.id}>
-                        <h3 className={!isAddMany ? "hidden" : "font-bold"}>Inquirer User {index + 1}</h3>
+                        <h3 className={!isAddMany ? "hidden" : "font-bold"}>{userType.charAt(0).toUpperCase() + userType.slice(1).toLowerCase()} User {index + 1}</h3>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="firstName" className="text-right">First Name</Label>
                             <Input id="firstName" name="firstName" className="col-span-3" value={form.firstname} onChange={(e) => handleInputChange(form.id, "firstname", e.target.value)}/>

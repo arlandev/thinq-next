@@ -174,6 +174,7 @@ export default function UserList({user_role}:UserListProps) {
               };
               fetchUsers();
             }}
+            userType={user_role}
           />
           <BatchDeactivateDialog users={usersSample} />
         </div>
