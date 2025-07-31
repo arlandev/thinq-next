@@ -20,6 +20,9 @@ interface Ticket {
     ticket_attachment: String[];
     ticket_status: string;
     assignee_id: number | null;
+    ticket_resolution: string;
+    ticket_closedby: number | null;
+    ticket_resolveddate: Date;
 
     inquirer?: {
         user_type: string;
@@ -34,6 +37,11 @@ interface Ticket {
         user_lastname: string;
         user_email: string;
     };
+    closedby?: {
+      user_firstname: string;
+      user_lastname: string;
+      user_email: string;
+    }
 }
 
 const defaultTicket: Ticket = {
@@ -47,6 +55,9 @@ const defaultTicket: Ticket = {
     ticket_attachment:[],
     ticket_status:"CLOSED",
     assignee_id:0,
+    ticket_resolution:"",
+    ticket_closedby:0,
+    ticket_resolveddate: new Date(),
 }
 
 interface TicketListProps {
@@ -97,33 +108,30 @@ export default function TicketList({user_type, filter_status}:TicketListProps) {
   };
 
   const ResolutionDetailsModal = () => {
-    // if (!selectedInquiry) return null;
 
     return (
       <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Resolution Details</DialogTitle>
-            <DialogDescription>{/* Inquiry #{selectedInquiry.referenceNumber} */}{resolvedTicket[0].ticket_id}</DialogDescription>
+            <DialogDescription>{resolvedTicket[0].ticket_id}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-3">
             <div>
               <p className="text-sm font-medium">Closed Date</p>
-                resolved date
+                {resolvedTicket[0].ticket_resolveddate.toLocaleDateString('en-CA').replace(/-/g, '/')}
             </div>
 
             <div>
               <p className="text-sm font-medium">Closed By</p>
-              {/* <p className="text-sm">{selectedInquiry.closedBy}</p> */}
-              {resolvedTicket[1] + resolvedTicket[2]} {/* need to add closedBy column since we don't know if ticket is closed by inquirer/assignee */}
+              {resolvedTicket[1] + resolvedTicket[2]}
             </div>
 
             <div>
               <p className="text-sm font-medium">Resolution Notes</p>
               <p className="text-sm whitespace-pre-wrap">
-                {/* {selectedInquiry.resolutionNotes} */}
-                Resolution Notes here.
+                {`${resolvedTicket[0].closedby?.user_firstname ?? ''} ${resolvedTicket[0].closedby?.user_lastname ?? ''}`}
               </p>
             </div>
           </div>

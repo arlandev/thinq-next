@@ -71,7 +71,7 @@ model Concern {
 model Ticket {
   ticket_id             Int        @id @default(autoincrement())
   ticket_submitteddate  DateTime   @default(now())
-  ticket_assigneddate   DateTime?   @db.Date
+  ticket_assigneddate   DateTime?  @db.Date
   
   // Inquirer (submitter) relation
   inquirer_id           Int
@@ -90,6 +90,7 @@ model Ticket {
   ticket_status         TicketStatus @default(NEW)
   ticket_resolution     String?
   ticket_rating         Int?
+  ticket_resolveddate   DateTime?  @db.Date
 
   // Closed By relation
   ticket_closedby       Int?
