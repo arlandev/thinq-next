@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {Table, TableBody, TableHead, TableHeader, TableRow,} from "@/components/ui/table";
@@ -15,29 +15,31 @@ function DispatcherHome() {
   // if status is Closed, then status value is clickable and will show a modal
   // else, do nothing
 
-
-  const inquiries = [
-    {
-      id: "001",
-      referenceNumber: "INQ-2023-001",
-      inquirer: "john.doe@example.com",
-      concern: "Account Access",
-      status: "New",
-      assignedTo: "John Doe",
-    },
-    {
-      id: "002",
-      referenceNumber: "INQ-2023-002",
-      inquirer: "jane.smith@example.com",
-      concern: "Password Reset",
-      status: "Closed",
-      assignedTo: "Jose Rizal",
-      closedDate: "2023-11-20",
-      closedBy: "Jose Rizal",
-      resolutionNotes:
-        "User's password was successfully reset and account access was restored.",
-    },
-  ];
+  const [selectedFilter, setSelectedFilter] = useState<string[]>([])
+  const [selected, setSelected] = useState<string>('');
+  
+  // const inquiries = [
+  //   {
+  //     id: "001",
+  //     referenceNumber: "INQ-2023-001",
+  //     inquirer: "john.doe@example.com",
+  //     concern: "Account Access",
+  //     status: "New",
+  //     assignedTo: "John Doe",
+  //   },
+  //   {
+  //     id: "002",
+  //     referenceNumber: "INQ-2023-002",
+  //     inquirer: "jane.smith@example.com",
+  //     concern: "Password Reset",
+  //     status: "Closed",
+  //     assignedTo: "Jose Rizal",
+  //     closedDate: "2023-11-20",
+  //     closedBy: "Jose Rizal",
+  //     resolutionNotes:
+  //       "User's password was successfully reset and account access was restored.",
+  //   },
+  // ];
 
   return (
     <PageLayout navbar={<NavBar />}>
@@ -63,10 +65,11 @@ function DispatcherHome() {
               <div className="space-y-4">
                 <div className="font-medium">FILTER BY STATUS</div>
                 <div className="space-y-2">
-                  <Button className="w-full">NEW & OPEN</Button>
-                  <Button className="w-full">NEW</Button>
-                  <Button className="w-full">OPEN</Button>
-                  <Button className="w-full">CLOSED</Button>
+                  <Button className={selected==='NEWOPEN'?'w-full opacity-60':'w-full'} onClick={() => {setSelectedFilter(['NEW','OPEN']);setSelected('NEWOPEN')}}>NEW & OPEN</Button>
+                  <Button className={selected==='NEW'?'w-full opacity-60':'w-full'} onClick={() => {setSelectedFilter(['NEW']);setSelected('NEW')}}>NEW</Button>
+                  <Button className={selected==='OPEN'?'w-full opacity-60':'w-full'} onClick={() => {setSelectedFilter(['OPEN']);setSelected('OPEN')}}>OPEN</Button>
+                  <Button className={selected==='CLOSED'?'w-full opacity-60':'w-full'} onClick={() => {setSelectedFilter(['CLOSED']);setSelected('CLOSED')}}>CLOSED</Button>
+                  <Button className={selected===''?'pointer-events-none opacity-50 w-full':'w-full bg-blue-500 text-white hover:bg-blue-500 hover:opacity-80'} onClick={() => {setSelectedFilter([]);setSelected('')}}>CLEAR</Button>
                 </div>
               </div>
             </div>
@@ -87,7 +90,7 @@ function DispatcherHome() {
                       </TableRow>
                     </TableHeader>
                     <TableBody className="h-full">
-                      <TicketList user_type="EMPLOYEE"/>
+                      <TicketList user_type="EMPLOYEE" filter_status={selectedFilter}/>
                     </TableBody>
                   </Table>
                 </div>
@@ -105,10 +108,11 @@ function DispatcherHome() {
               <div className="space-y-4">
                 <div className="font-medium">FILTER BY STATUS</div>
                 <div className="space-y-2">
-                  <Button className="w-full">NEW & OPEN</Button>
-                  <Button className="w-full">NEW</Button>
-                  <Button className="w-full">OPEN</Button>
-                  <Button className="w-full">CLOSED</Button>
+                  <Button className={selected==='NEWOPEN'?'w-full opacity-60':'w-full'} onClick={() => {setSelectedFilter(['NEW','OPEN']);setSelected('NEWOPEN')}}>NEW & OPEN</Button>
+                  <Button className={selected==='NEW'?'w-full opacity-60':'w-full'} onClick={() => {setSelectedFilter(['NEW']);setSelected('NEW')}}>NEW</Button>
+                  <Button className={selected==='OPEN'?'w-full opacity-60':'w-full'} onClick={() => {setSelectedFilter(['OPEN']);setSelected('OPEN')}}>OPEN</Button>
+                  <Button className={selected==='CLOSED'?'w-full opacity-60':'w-full'} onClick={() => {setSelectedFilter(['CLOSED']);setSelected('CLOSED')}}>CLOSED</Button>
+                  <Button className={selected===''?'pointer-events-none opacity-50 w-full':'w-full bg-blue-500 text-white hover:bg-blue-500 hover:opacity-80'} onClick={() => {setSelectedFilter([]);setSelected('')}}>CLEAR</Button>
                 </div>
               </div>
             </div>
@@ -129,7 +133,7 @@ function DispatcherHome() {
                       </TableRow>
                     </TableHeader>
                     <TableBody className="h-full">
-                      <TicketList user_type="STUDENT"/>
+                      <TicketList user_type="STUDENT" filter_status={selectedFilter}/>
                     </TableBody>
                   </Table>
                 </div>

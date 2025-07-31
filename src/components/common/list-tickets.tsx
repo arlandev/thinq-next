@@ -51,14 +51,14 @@ const defaultTicket: Ticket = {
 
 interface TicketListProps {
     user_type: string;
+    filter_status: string[];
 }
 
-export default function TicketList({user_type}:TicketListProps) {
+export default function TicketList({user_type, filter_status}:TicketListProps) {
 
     const [tickets, setTickets] = useState<Ticket[]>([]);
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [resolvedTicket, setResolvedTicket] = useState<[Ticket,string,string]>([defaultTicket,"",""]);
-
 
     useEffect(() => {
         let isMounted = true;
@@ -68,7 +68,6 @@ export default function TicketList({user_type}:TicketListProps) {
             const tickets = await readTickets();
             if (isMounted) {
               setTickets(tickets as unknown as Ticket[]);
-              console.log(tickets)
               toast.success("Tickets loaded successfully");
             }
           } catch (error) {
@@ -139,7 +138,7 @@ export default function TicketList({user_type}:TicketListProps) {
 
     return (
         <>
-            {tickets.filter(ticket => ticket.inquirer?.user_type===user_type).map((ticket: Ticket) => (
+            {tickets.filter(ticket => (filter_status.length === 0 || filter_status.includes(ticket.ticket_status)) && ticket.inquirer?.user_type === user_type).map((ticket: Ticket) => (
                 <TableRow key={ticket.ticket_id}>
                     <TableCell className="font-medium">{ticket.ticket_submitteddate.toLocaleDateString('en-CA').replace(/-/g, '/')}</TableCell>
                         <TableCell>{ticket.ticket_id}</TableCell>
