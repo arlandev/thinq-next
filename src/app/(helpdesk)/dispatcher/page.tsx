@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {Table, TableBody, TableHead, TableHeader, TableRow,} from "@/components/ui/table";
@@ -9,6 +9,7 @@ import NavBar from "@/components/common/navbar";
 import WelcomeText from "@/components/common/welcome-text";
 import PageLayout from "@/components/common/page-layout";
 import TicketList from "@/components/common/list-tickets";
+import { TableSkeleton } from "@/components/common/table-skeleton";
 
 function DispatcherHome() {
   // add Event Listener for Status column
@@ -17,6 +18,22 @@ function DispatcherHome() {
 
   const [selectedFilter, setSelectedFilter] = useState<string[]>([])
   const [selected, setSelected] = useState<string>('');
+  const [ isLoading , setIsLoading ] = useState(true);
+  
+  useEffect(() => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+  }, []);
+  
+  // Function to handle tab changes and trigger loading
+  const handleTabChange = (value: string) => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 2000); // pseudo loading time for data pull
+  };
   
   // const inquiries = [
   //   {
@@ -46,7 +63,7 @@ function DispatcherHome() {
       {/* Welcome Section */}
       <WelcomeText firstName="Test" lastName="Test" />
       {/* Tabs Container */}
-      <Tabs defaultValue="employees" className="flex-grow flex flex-col">
+      <Tabs defaultValue="employees" className="flex-grow flex flex-col" onValueChange={handleTabChange}>
         <div className="p-8 w-full">
           <div className="container mx-auto flex justify-center items-center">
             <TabsList className="w-full max-w-[600px]">
@@ -76,25 +93,29 @@ function DispatcherHome() {
 
             {/* Right Column - Employees Table */}
             <div className="flex-grow flex flex-col">
-              <div className="bg-white rounded-lg shadow-xl flex-grow flex flex-col">
-                <div className="flex flex-col h-full">
-                  <Table className="h-full">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[200px]">Inquiry Date</TableHead>
-                        <TableHead>Ref. No.</TableHead>
-                        <TableHead>Concern</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Assignment</TableHead>
-                        <TableHead className="text-right">Details</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody className="h-full">
-                      <TicketList user_type="EMPLOYEE" filter_status={selectedFilter}/>
-                    </TableBody>
-                  </Table>
+              {isLoading ? (
+                <TableSkeleton rows={6} />
+              ) : (
+                <div className="bg-white rounded-lg shadow-xl flex-grow flex flex-col">
+                  <div className="flex flex-col h-full">
+                    <Table className="h-full">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[200px]">Inquiry Date</TableHead>
+                          <TableHead>Ref. No.</TableHead>
+                          <TableHead>Concern</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Assignment</TableHead>
+                          <TableHead className="text-right">Details</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody className="h-full">
+                        <TicketList user_type="EMPLOYEE" filter_status={selectedFilter}/>
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </TabsContent>
@@ -117,27 +138,31 @@ function DispatcherHome() {
               </div>
             </div>
 
-            {/* Right Column - Employees Table */}
+            {/* Right Column - Students Table */}
             <div className="flex-grow flex flex-col">
-              <div className="bg-white rounded-lg shadow-xl flex-grow flex flex-col">
-                <div className="flex flex-col h-full">
-                  <Table className="h-full">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[200px]">Inquiry Date</TableHead>
-                        <TableHead>Ref. No.</TableHead>
-                        <TableHead>Concern</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Assignment</TableHead>
-                        <TableHead className="text-right">Details</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody className="h-full">
-                      <TicketList user_type="STUDENT" filter_status={selectedFilter}/>
-                    </TableBody>
-                  </Table>
+              {isLoading ? (
+                <TableSkeleton rows={6} />
+              ) : (
+                <div className="bg-white rounded-lg shadow-xl flex-grow flex flex-col">
+                  <div className="flex flex-col h-full">
+                    <Table className="h-full">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[200px]">Inquiry Date</TableHead>
+                          <TableHead>Ref. No.</TableHead>
+                          <TableHead>Concern</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Assignment</TableHead>
+                          <TableHead className="text-right">Details</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody className="h-full">
+                        <TicketList user_type="STUDENT" filter_status={selectedFilter}/>
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </TabsContent>

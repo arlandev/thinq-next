@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { readUsers } from "@/app/actions/adminReadUsers"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
+import { assignPersonnel } from "@/app/actions/assignPersonnel" 
 
 // Define the Inquiry type
 interface Inquiry {
@@ -25,6 +26,7 @@ interface Inquiry {
 interface InquiryDetailsDialogProps {
   inquiry?: Inquiry
   trigger?: React.ReactNode
+  onAssignmentComplete?: () => void
 }
 
 const defaultInquiry: Inquiry = {
@@ -48,7 +50,7 @@ interface Personnel {
   user_status: string;
 }
 
-export default function InquiryDetailsDialog({ inquiry = defaultInquiry, trigger }: InquiryDetailsDialogProps) {
+export default function InquiryDetailsDialog({ inquiry = defaultInquiry, trigger, onAssignmentComplete }: InquiryDetailsDialogProps) {
   
   const [personnels, setPersonnels] = useState<Personnel[]>([]);
 
@@ -81,9 +83,15 @@ export default function InquiryDetailsDialog({ inquiry = defaultInquiry, trigger
   const [open, setOpen] = useState(false)
   const [selectedAssignee, setSelectedAssignee] = useState<string>(inquiry.assignedTo ?? "")
 
-  const handleSave = () => {
-    // TODO: Implement save functionality
-    console.log("Saving inquiry with assignee:", selectedAssignee)
+  const handleSave = async (assigneeUserId: number, inquiryId: number ) => {
+    const result = await assignPersonnel(assigneeUserId, inquiryId)
+    if (result.success) {
+      toast.success(result.message)
+      // Trigger data refresh after successful assignment
+      onAssignmentComplete?.()
+    } else {
+      toast.error(result.message)
+    }
     setOpen(false)
   }
 
@@ -185,7 +193,7 @@ export default function InquiryDetailsDialog({ inquiry = defaultInquiry, trigger
         </div>
         <DialogFooter className="gap-2">
           <Button variant="outline" type="button" onClick={handleCancel}>Cancel</Button>
-          <Button variant="default" type="button" onClick={handleSave}disabled={!selectedAssignee && !inquiry.assignedTo}>
+          <Button variant="default" type="button" onClick={() => {handleSave(parseInt(selectedAssignee), parseInt(inquiry.referenceNumber));}} disabled={!selectedAssignee && !inquiry.assignedTo}>
             Save & Close
           </Button>
         </DialogFooter>

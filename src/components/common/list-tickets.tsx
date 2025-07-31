@@ -70,12 +70,14 @@ export default function TicketList({user_type, filter_status}:TicketListProps) {
     const [tickets, setTickets] = useState<Ticket[]>([]);
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [resolvedTicket, setResolvedTicket] = useState<[Ticket,string,string]>([defaultTicket,"",""]);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         let isMounted = true;
         
         const fetchTickets = async () => {
           try {
+            setIsLoading(true);
             const tickets = await readTickets();
             if (isMounted) {
               setTickets(tickets as unknown as Ticket[]);
@@ -85,6 +87,10 @@ export default function TicketList({user_type, filter_status}:TicketListProps) {
             console.error("Error fetching tickets:", error);
             if (isMounted) {
               toast.error("Failed to load tickets");
+            }
+          } finally {
+            if (isMounted) {
+              setIsLoading(false)
             }
           }
         };
@@ -146,7 +152,7 @@ export default function TicketList({user_type, filter_status}:TicketListProps) {
 
     return (
         <>
-            {tickets.filter(ticket => (filter_status.length === 0 || filter_status.includes(ticket.ticket_status)) && ticket.inquirer?.user_type === user_type).map((ticket: Ticket) => (
+              {tickets.filter(ticket => (filter_status.length === 0 || filter_status.includes(ticket.ticket_status)) && ticket.inquirer?.user_type === user_type).map((ticket: Ticket) => (
                 <TableRow key={ticket.ticket_id}>
                     <TableCell className="font-medium">{ticket.ticket_submitteddate.toLocaleDateString('en-CA').replace(/-/g, '/')}</TableCell>
                         <TableCell>{ticket.ticket_id}</TableCell>
@@ -159,7 +165,14 @@ export default function TicketList({user_type, filter_status}:TicketListProps) {
                             </TableCell> :
                             <TableCell>{ticket.ticket_status}</TableCell> 
                         }
-                        <TableCell id="assignmentValue" className="text-red-500 font-medium">{ticket.assignee_id===null?'Not Yet Assigned':ticket.assignee_id}</TableCell>
+                        <TableCell id="assignmentValue" className="text-red-500 font-medium">
+                          {ticket.assignee_id === null 
+                            ? 'Not Yet Assigned' 
+                            : ticket.assignee 
+                              ? `${ticket.assignee.user_firstname} ${ticket.assignee.user_lastname}`
+                              : `ID: ${ticket.assignee_id}`
+                          }
+                        </TableCell>
                         <TableCell className="text-right">
                           <InquiryDetailsDialog
                             inquiry={{
@@ -174,9 +187,8 @@ export default function TicketList({user_type, filter_status}:TicketListProps) {
                           />
                         </TableCell>
                 </TableRow>
-            ))}
-        <ResolutionDetailsModal />
-
+              ))}
+          <ResolutionDetailsModal />
         </>
     )
 }

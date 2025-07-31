@@ -10,6 +10,7 @@ import WelcomeText from "@/components/common/welcome-text";
 import NavBar from "@/components/common/navbar";
 import AccountsPageTitle from "@/components/common/accounts-page-title";
 import AddUserDialog from "@/components/common/add-user-dialog";
+import { TableSkeleton } from "@/components/common/table-skeleton";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -70,12 +71,14 @@ export default function UserList({user_role}:UserListProps) {
   // TODO: Add Edit Dialog
 
   const [completeUsers, setCompleteUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
     
     const fetchUsers = async () => {
       try {
+        setIsLoading(true);
         const users = await readUsers();
         if (isMounted) {
           setCompleteUsers(users as unknown as User[]);
@@ -85,6 +88,10 @@ export default function UserList({user_role}:UserListProps) {
         console.error("Error fetching users:", error);
         if (isMounted) {
           toast.error("Failed to load users");
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
         }
       }
     };
@@ -111,73 +118,82 @@ export default function UserList({user_role}:UserListProps) {
       <AccountsPageTitle userType={user_role}/>
 
       <div className="flex-grow flex flex-col">
-        <div className="bg-white rounded-lg shadow-xl flex-grow flex flex-col">
-          <div className="flex flex-col h-full">
-            <Table className="h-full">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-1/12"></TableHead>
-                  <TableHead className="w-1/12">User ID</TableHead>
-                  <TableHead className="w-3/12">Email</TableHead>
-                  <TableHead className="w-1/12">First Name</TableHead>
-                  <TableHead className="w-1/12">Last Name</TableHead>
-                  <TableHead className="w-2/12">Type</TableHead>
-                  <TableHead className="w-1/12">Affiliation</TableHead>
-                  <TableHead className="w-1/12">Status</TableHead>
-                  <TableHead className="w-3/12 text-right"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody className="h-full">
-              {completeUsers.filter((user: User) => user.user_role===user_role).map((user: User) => (
-                <TableRow key={user.id}>
-                    <TableCell>
-                        <EditDialog user={{
-                            id: user.id,
-                            name: `${user.user_firstname} ${user.user_lastname}`,
-                            email: user.user_email,
-                        }} />
-                    </TableCell>
-                    <TableCell>{user.id}</TableCell>
-                        <TableCell>{user.user_email}</TableCell>
-                        <TableCell>{user.user_firstname}</TableCell>
-                        <TableCell>{user.user_lastname}</TableCell>
-                        <TableCell>{user.user_type}</TableCell>
-                        <TableCell>{user.user_affiliation}</TableCell>
-                        <TableCell>{user.user_status}</TableCell>
-                        <TableCell className="text-right">
-                        <DeactivateButton
-                            disable={user.user_status === "ACTIVE"}
-                            userName={`${user.user_firstname} ${user.user_lastname}`}
-                            userEmail={user.user_email}
-                        />
+        {isLoading ? (
+          <TableSkeleton rows={5} />
+        ) : (
+          <>
+            <div className="bg-white rounded-lg shadow-xl flex-grow flex flex-col">
+              <div className="flex flex-col h-full">
+                <Table className="h-full">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-1/12"></TableHead>
+                      <TableHead className="w-1/12">User ID</TableHead>
+                      <TableHead className="w-3/12">Email</TableHead>
+                      <TableHead className="w-1/12">First Name</TableHead>
+                      <TableHead className="w-1/12">Last Name</TableHead>
+                      <TableHead className="w-2/12">Type</TableHead>
+                      <TableHead className="w-1/12">Affiliation</TableHead>
+                      <TableHead className="w-1/12">Status</TableHead>
+                      <TableHead className="w-3/12 text-right"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody className="h-full">
+                  {completeUsers.filter((user: User) => user.user_role===user_role).map((user: User) => (
+                    <TableRow key={user.id}>
+                        <TableCell>
+                            <EditDialog user={{
+                                id: user.id,
+                                name: `${user.user_firstname} ${user.user_lastname}`,
+                                email: user.user_email,
+                            }} />
                         </TableCell>
-                </TableRow>
-              ))}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-        <div className="flex justify-center gap-10 mt-5">
-          <AddUserDialog 
-            addType={user_role} 
-            onUserAdded={() => {
-              // Refresh the users list after adding a new user
-              const fetchUsers = async () => {
-                try {
-                  const users = await readUsers();
-                  setCompleteUsers(users as unknown as User[]);
-                  toast.success("Users list refreshed");
-                } catch (error) {
-                  console.error("Error fetching users:", error);
-                  toast.error("Failed to refresh users list");
-                }
-              };
-              fetchUsers();
-            }}
-            userType={user_role}
-          />
-          <BatchDeactivateDialog users={usersSample} />
-        </div>
+                        <TableCell>{user.id}</TableCell>
+                            <TableCell>{user.user_email}</TableCell>
+                            <TableCell>{user.user_firstname}</TableCell>
+                            <TableCell>{user.user_lastname}</TableCell>
+                            <TableCell>{user.user_type}</TableCell>
+                            <TableCell>{user.user_affiliation}</TableCell>
+                            <TableCell>{user.user_status}</TableCell>
+                            <TableCell className="text-right">
+                            <DeactivateButton
+                                disable={user.user_status === "ACTIVE"}
+                                userName={`${user.user_firstname} ${user.user_lastname}`}
+                                userEmail={user.user_email}
+                            />
+                            </TableCell>
+                    </TableRow>
+                  ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+            <div className="flex justify-center gap-10 mt-5">
+              <AddUserDialog 
+                addType={user_role} 
+                onUserAdded={() => {
+                  // Refresh the users list after adding a new user
+                  const fetchUsers = async () => {
+                    try {
+                      setIsLoading(true);
+                      const users = await readUsers();
+                      setCompleteUsers(users as unknown as User[]);
+                      toast.success("Users list refreshed");
+                    } catch (error) {
+                      console.error("Error fetching users:", error);
+                      toast.error("Failed to refresh users list");
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  };
+                  fetchUsers();
+                }}
+                userType={user_role}
+              />
+              <BatchDeactivateDialog users={usersSample} />
+            </div>
+          </>
+        )}
       </div>
     </PageLayout>
   );
