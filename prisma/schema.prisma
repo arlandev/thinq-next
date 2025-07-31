@@ -37,6 +37,7 @@ model User {
   // Tickets assigned to this user
   assigned_tickets  Ticket[]  @relation("TicketAssignee")
   messages         Message[]
+  closed_tickets Ticket[] @relation("TicketClosedBy")
 
   @@map("users")
 }
