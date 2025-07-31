@@ -91,6 +91,10 @@ model Ticket {
   ticket_resolution     String?
   ticket_rating         Int?
 
+  // Closed By relation
+  ticket_closedby       Int?
+  closedby              User?     @relation("TicketClosedBy", fields: [ticket_closedby], references: [id])
+
   @@map("tickets")
 }
 
