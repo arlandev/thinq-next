@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { readUsers } from "@/app/actions/adminReadUsers"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 import { assignPersonnel } from "@/app/actions/assignPersonnel" 
+import { readUsers } from "@/app/actions/adminReadUsers"
+
 
 // Define the Inquiry type
 interface Inquiry {
@@ -52,36 +53,11 @@ interface Personnel {
 
 export default function InquiryDetailsDialog({ inquiry = defaultInquiry, trigger, onAssignmentComplete }: InquiryDetailsDialogProps) {
   
-  const [personnels, setPersonnels] = useState<Personnel[]>([]);
-
-  useEffect(() => {
-    let isMounted = true;
-    
-    const fetchUsers = async () => {
-      try {
-        const users = await readUsers();
-        if (isMounted) {
-          setPersonnels(users as unknown as Personnel[]);
-          toast.success("Available Personnels loaded successfully");
-          console.log(users)
-        }
-      } catch (error) {
-        console.error("Error fetching personnels:", error);
-        if (isMounted) {
-          toast.error("Failed to load personnels");
-        }
-      }
-    };
-
-    fetchUsers();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-  
+  const [isLoadingPersonnels, setIsLoadingPersonnels] = useState(false)
   const [open, setOpen] = useState(false)
   const [selectedAssignee, setSelectedAssignee] = useState<string>(inquiry.assignedTo ?? "")
+  const [personnelsLoaded, setPersonnelsLoaded] = useState(false)
+  const [personnels, setPersonnels] = useState<Personnel[]>([])
 
   const handleSave = async (assigneeUserId: number, inquiryId: number ) => {
     const result = await assignPersonnel(assigneeUserId, inquiryId)
@@ -95,6 +71,23 @@ export default function InquiryDetailsDialog({ inquiry = defaultInquiry, trigger
     setOpen(false)
   }
 
+  const fetchPersonnels = async () => {
+    if (personnelsLoaded) return
+
+    setIsLoadingPersonnels(true)
+    try {
+      const personnelUsers = await readUsers()
+      setPersonnels(personnelUsers as unknown as Personnel[])
+      setPersonnelsLoaded(true)
+      toast.success("Available Personnels loaded successfully")
+    } catch (error) {
+      console.error("Error fetching personnels:", error)
+      toast.error("Failed to load personnels")
+    } finally {
+      setIsLoadingPersonnels(false)
+    }
+  }
+
   const handleCancel = () => {
     // Reset any changes
     setSelectedAssignee(inquiry.assignedTo ?? "")
@@ -102,7 +95,12 @@ export default function InquiryDetailsDialog({ inquiry = defaultInquiry, trigger
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={ (newOpen) => {
+      setOpen(newOpen)
+      if (newOpen) {
+        fetchPersonnels()
+      }
+    }}>
       <DialogTrigger asChild>{trigger ?? <Button variant="outline">View Details</Button>}</DialogTrigger>
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -169,7 +167,7 @@ export default function InquiryDetailsDialog({ inquiry = defaultInquiry, trigger
               {!inquiry.assignedTo ? (
                 <Select value={selectedAssignee} onValueChange={setSelectedAssignee}>
                   <SelectTrigger className="w-[220px]">
-                    <SelectValue placeholder="Assign this inquiry" />
+                    <SelectValue placeholder={isLoadingPersonnels ? "Loading..." : "Assign this inquiry"} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
