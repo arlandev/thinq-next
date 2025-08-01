@@ -1,8 +1,6 @@
 'use client'
 
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { readTickets } from "@/app/actions/readTickets";
+import { useState } from "react";
 import { TableRow, TableCell} from "../ui/table";
 import InquiryDetailsDialog from "./inquiry-details-dialog";
 import { Button } from "../ui/button";
@@ -63,44 +61,13 @@ const defaultTicket: Ticket = {
 interface TicketListProps {
     user_type: string;
     filter_status: string[];
+    tickets: Ticket[];
 }
 
-export default function TicketList({user_type, filter_status}:TicketListProps) {
+export default function TicketList({user_type, filter_status, tickets}:TicketListProps) {
 
-    const [tickets, setTickets] = useState<Ticket[]>([]);
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [resolvedTicket, setResolvedTicket] = useState<[Ticket,string,string]>([defaultTicket,"",""]);
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        let isMounted = true;
-        
-        const fetchTickets = async () => {
-          try {
-            setIsLoading(true);
-            const tickets = await readTickets();
-            if (isMounted) {
-              setTickets(tickets as unknown as Ticket[]);
-              toast.success("Tickets loaded successfully");
-            }
-          } catch (error) {
-            console.error("Error fetching tickets:", error);
-            if (isMounted) {
-              toast.error("Failed to load tickets");
-            }
-          } finally {
-            if (isMounted) {
-              setIsLoading(false)
-            }
-          }
-        };
-    
-        fetchTickets();
-    
-        return () => {
-          isMounted = false;
-        };
-      }, []);
 
 
   const handleStatusClick = (_inquiry: Ticket, assignee_fname: string, assignee_lname: string) => {
