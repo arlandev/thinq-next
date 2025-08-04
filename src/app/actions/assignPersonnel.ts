@@ -8,7 +8,10 @@ export async function assignPersonnel(assigneeUserId: number, inquiryId: number)
     try {
         const assigned = await prisma.ticket.update({
             where: { ticket_id: inquiryId },
-            data: { assignee_id: assigneeUserId }
+            data: { 
+                assignee_id: assigneeUserId,
+                ticket_assigneddate: new Date()
+            }
         })
         return { success: true, message: "Personnel assigned successfully", data: assigned }
     } catch (error) {
