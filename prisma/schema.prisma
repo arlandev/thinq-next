@@ -123,3 +123,9 @@ model Message {
   message_content       String[]
   message_attachment    String[]
 }
+
+model affiliation {
+  affiliation_id Int @id @default(autoincrement())
+  affiliation_name String
+  affiliation_abbreviation String
+}
