@@ -61,13 +61,18 @@ enum UserType {
 
 
 model Concern {
-  concern_id      Int       @id @default(autoincrement())
+  concern_id      Int                @id @default(autoincrement())
   concern_title   String    
   concern_faq     Json[]
-  user            User      @relation(fields: [applicable_to], references: [id])
-  applicable_to   Int       @default(0)
+  applicable_to   ApplicableTo       @default(ALL)
   
   tickets         Ticket[]
+}
+
+enum ApplicableTo {
+  ALL
+  EMPLOYEE
+  STUDENT
 }
 
 
