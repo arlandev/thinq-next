@@ -63,7 +63,7 @@ enum UserType {
 model Concern {
   concern_id      Int       @id @default(autoincrement())
   concern_title   String    
-  concern_faq     String[]  
+  concern_faq     Json[]  
   
   tickets         Ticket[]
 }
