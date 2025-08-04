@@ -11,5 +11,6 @@ export async function readTickets() {
             assignee: true,
         }
     });
+
     return tickets;
 }

@@ -12,6 +12,7 @@ import TicketList from "@/components/common/list-tickets";
 import { TableSkeleton } from "@/components/common/table-skeleton";
 import { readTickets } from "@/app/actions/readTickets";
 import { toast } from "sonner";
+import { Card,CardHeader,CardTitle,CardFooter } from "@/components/ui/card";
 
 interface Ticket {
     ticket_id: number;
@@ -138,9 +139,23 @@ function DispatcherHome() {
         <TabsContent value="employees" className="flex-grow flex flex-col mt-0">
           <div className="flex flex-col md:flex-row gap-8 flex-grow">
             {/* Left Column */}
-            <div className="w-full md:w-64 flex-shrink-0 space-y-8">
+            <div className="w-full md:w-64 flex-shrink-0 space-y-8 row-start-2">
               {/* Status Buttons */}
               <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <Card className="py-3 gap-0">
+                    <CardHeader>
+                      <CardTitle className="text-5xl text-center">{tickets.filter(ticket => ticket.ticket_status==='NEW' && ticket.inquirer?.user_type==='EMPLOYEE').length}</CardTitle>
+                    </CardHeader>
+                    <CardFooter className="px-0"><p className="text-sm opacity-50 text-center w-full"><b>NEW</b> tickets</p></CardFooter>
+                  </Card>
+                  <Card className="py-3 gap-0">
+                    <CardHeader>
+                      <CardTitle className="text-5xl text-center">{tickets.filter(ticket => ticket.ticket_status==='OPEN' && ticket.inquirer?.user_type==='EMPLOYEE').length}</CardTitle>
+                    </CardHeader>
+                    <CardFooter className="px-0"><p className="text-sm opacity-50 text-center w-full"><b>OPEN</b> tickets</p></CardFooter>
+                  </Card>
+                </div>
                 <div className="font-medium">FILTER BY STATUS</div>
                 <div className="space-y-2">
                   <Button className={selected==='NEWOPEN'?'w-full opacity-60':'w-full'} onClick={() => {setSelectedFilter(['NEW','OPEN']);setSelected('NEWOPEN')}}>NEW & OPEN</Button>
@@ -188,6 +203,20 @@ function DispatcherHome() {
             <div className="w-full md:w-64 flex-shrink-0 space-y-8">
               {/* Status Buttons */}
               <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                  <Card className="py-3 gap-0">
+                    <CardHeader>
+                      <CardTitle className="text-5xl text-center">{tickets.filter(ticket => ticket.ticket_status==='NEW' && ticket.inquirer?.user_type==='STUDENT').length}</CardTitle>
+                    </CardHeader>
+                    <CardFooter className="px-0"><p className="text-sm opacity-50 text-center w-full"><b>NEW</b> tickets</p></CardFooter>
+                  </Card>
+                  <Card className="py-3 gap-0">
+                    <CardHeader>
+                      <CardTitle className="text-5xl text-center">{tickets.filter(ticket => ticket.ticket_status==='OPEN' && ticket.inquirer?.user_type==='STUDENT').length}</CardTitle>
+                    </CardHeader>
+                    <CardFooter className="px-0"><p className="text-sm opacity-50 text-center w-full"><b>OPEN</b> tickets</p></CardFooter>
+                  </Card>
+                </div>
                 <div className="font-medium">FILTER BY STATUS</div>
                 <div className="space-y-2">
                   <Button className={selected==='NEWOPEN'?'w-full opacity-60':'w-full'} onClick={() => {setSelectedFilter(['NEW','OPEN']);setSelected('NEWOPEN')}}>NEW & OPEN</Button>

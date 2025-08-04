@@ -26,7 +26,7 @@ export default function BarChartVisualHorizontal({title,chartConfig,chartData,da
                         accessibilityLayer
                         data={chartData}
                         layout="vertical"
-                        margin={{ left: -1, }}
+                        margin={{ left: 75, }}
                     >
                         <XAxis type="number" dataKey={dataKeyX} hide /> 
                         <YAxis
@@ -35,7 +35,7 @@ export default function BarChartVisualHorizontal({title,chartConfig,chartData,da
                             tickLine={false}
                             tickMargin={10}
                             axisLine={false}
-                            tickFormatter={(value) => String(value).slice(0, 10)}
+                            tickFormatter={(value) => value}
                         />
                         <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />}/>
                         <Bar dataKey={dataKeyX} fill={fill} radius={5} />
