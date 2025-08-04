@@ -12,7 +12,7 @@ import TicketList from "@/components/common/list-tickets";
 import { TableSkeleton } from "@/components/common/table-skeleton";
 import { readTickets } from "@/app/actions/readTickets";
 import { toast } from "sonner";
-import { Card,CardHeader,CardTitle,CardFooter } from "@/components/ui/card";
+import { Card,CardHeader,CardDescription,CardTitle,CardFooter } from "@/components/ui/card";
 
 interface Ticket {
     ticket_id: number;
@@ -142,26 +142,24 @@ function DispatcherHome() {
             <div className="w-full md:w-64 flex-shrink-0 space-y-8 row-start-2">
               {/* Status Buttons */}
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <Card className="py-3 gap-0">
-                    <CardHeader>
-                      <CardTitle className="text-5xl text-center">{tickets.filter(ticket => ticket.ticket_status==='NEW' && ticket.inquirer?.user_type==='EMPLOYEE').length}</CardTitle>
-                    </CardHeader>
-                    <CardFooter className="px-0"><p className="text-sm opacity-50 text-center w-full"><b>NEW</b> tickets</p></CardFooter>
-                  </Card>
-                  <Card className="py-3 gap-0">
-                    <CardHeader>
-                      <CardTitle className="text-5xl text-center">{tickets.filter(ticket => ticket.ticket_status==='OPEN' && ticket.inquirer?.user_type==='EMPLOYEE').length}</CardTitle>
-                    </CardHeader>
-                    <CardFooter className="px-0"><p className="text-sm opacity-50 text-center w-full"><b>OPEN</b> tickets</p></CardFooter>
-                  </Card>
-                </div>
                 <div className="font-medium">FILTER BY STATUS</div>
-                <div className="space-y-2">
-                  <Button className={selected==='NEWOPEN'?'w-full opacity-60':'w-full'} onClick={() => {setSelectedFilter(['NEW','OPEN']);setSelected('NEWOPEN')}}>NEW & OPEN</Button>
-                  <Button className={selected==='NEW'?'w-full opacity-60':'w-full'} onClick={() => {setSelectedFilter(['NEW']);setSelected('NEW')}}>NEW</Button>
-                  <Button className={selected==='OPEN'?'w-full opacity-60':'w-full'} onClick={() => {setSelectedFilter(['OPEN']);setSelected('OPEN')}}>OPEN</Button>
-                  <Button className={selected==='CLOSED'?'w-full opacity-60':'w-full'} onClick={() => {setSelectedFilter(['CLOSED']);setSelected('CLOSED')}}>CLOSED</Button>
+                <div className="space-y-2 w-3/4">
+                  <Card className={selected==='NEWOPEN'?'py-3 gap-0 pointer-events-none opacity-60 invert':'py-3 gap-0 cursor-pointer invert'} onClick={() => {setSelectedFilter(['NEW','OPEN']);setSelected('NEWOPEN')}}>
+                    <CardHeader><CardTitle className="text-5xl text-center">{tickets.filter(ticket => (ticket.ticket_status==='NEW' || ticket.ticket_status==='OPEN') && ticket.inquirer?.user_type==='EMPLOYEE').length}</CardTitle></CardHeader>
+                    <CardFooter className="px-0"><p className="text-sm text-center w-full">NEW & OPEN</p></CardFooter>
+                  </Card>
+                  <Card className={selected==='NEW'?'py-3 gap-0 pointer-events-none opacity-60 invert':'py-3 gap-0 cursor-pointer invert'} onClick={() => {setSelectedFilter(['NEW']);setSelected('NEW')}}>
+                    <CardHeader><CardTitle className="text-5xl text-center">{tickets.filter(ticket => (ticket.ticket_status==='NEW') && ticket.inquirer?.user_type==='EMPLOYEE').length}</CardTitle></CardHeader>
+                    <CardFooter className="px-0"><p className="text-sm text-center w-full">NEW</p></CardFooter>
+                  </Card>
+                  <Card className={selected==='OPEN'?'py-3 gap-0 pointer-events-none opacity-60 invert':'py-3 gap-0 cursor-pointer invert'} onClick={() => {setSelectedFilter(['OPEN']);setSelected('OPEN')}}>
+                    <CardHeader><CardTitle className="text-5xl text-center">{tickets.filter(ticket => (ticket.ticket_status==='OPEN') && ticket.inquirer?.user_type==='EMPLOYEE').length}</CardTitle></CardHeader>
+                    <CardFooter className="px-0"><p className="text-sm text-center w-full">OPEN</p></CardFooter>
+                  </Card>
+                  <Card className={selected==='CLOSED'?'py-3 gap-0 pointer-events-none opacity-60 invert':'py-3 gap-0 cursor-pointer invert'} onClick={() => {setSelectedFilter(['CLOSED']);setSelected('CLOSED')}}>
+                    <CardHeader><CardTitle className="text-5xl text-center">{tickets.filter(ticket => (ticket.ticket_status==='CLOSED') && ticket.inquirer?.user_type==='EMPLOYEE').length}</CardTitle></CardHeader>
+                    <CardFooter className="px-0"><p className="text-sm text-center w-full">CLOSED</p></CardFooter>
+                  </Card>
                   <Button className={selected===''?'pointer-events-none opacity-50 w-full':'w-full bg-blue-500 text-white hover:bg-blue-500 hover:opacity-80'} onClick={() => {setSelectedFilter([]);setSelected('')}}>CLEAR</Button>
                 </div>
               </div>
@@ -203,26 +201,24 @@ function DispatcherHome() {
             <div className="w-full md:w-64 flex-shrink-0 space-y-8">
               {/* Status Buttons */}
               <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                  <Card className="py-3 gap-0">
-                    <CardHeader>
-                      <CardTitle className="text-5xl text-center">{tickets.filter(ticket => ticket.ticket_status==='NEW' && ticket.inquirer?.user_type==='STUDENT').length}</CardTitle>
-                    </CardHeader>
-                    <CardFooter className="px-0"><p className="text-sm opacity-50 text-center w-full"><b>NEW</b> tickets</p></CardFooter>
-                  </Card>
-                  <Card className="py-3 gap-0">
-                    <CardHeader>
-                      <CardTitle className="text-5xl text-center">{tickets.filter(ticket => ticket.ticket_status==='OPEN' && ticket.inquirer?.user_type==='STUDENT').length}</CardTitle>
-                    </CardHeader>
-                    <CardFooter className="px-0"><p className="text-sm opacity-50 text-center w-full"><b>OPEN</b> tickets</p></CardFooter>
-                  </Card>
-                </div>
                 <div className="font-medium">FILTER BY STATUS</div>
-                <div className="space-y-2">
-                  <Button className={selected==='NEWOPEN'?'w-full opacity-60':'w-full'} onClick={() => {setSelectedFilter(['NEW','OPEN']);setSelected('NEWOPEN')}}>NEW & OPEN</Button>
-                  <Button className={selected==='NEW'?'w-full opacity-60':'w-full'} onClick={() => {setSelectedFilter(['NEW']);setSelected('NEW')}}>NEW</Button>
-                  <Button className={selected==='OPEN'?'w-full opacity-60':'w-full'} onClick={() => {setSelectedFilter(['OPEN']);setSelected('OPEN')}}>OPEN</Button>
-                  <Button className={selected==='CLOSED'?'w-full opacity-60':'w-full'} onClick={() => {setSelectedFilter(['CLOSED']);setSelected('CLOSED')}}>CLOSED</Button>
+                <div className="space-y-2 w-3/4">
+                  <Card className={selected==='NEWOPEN'?'py-3 gap-0 pointer-events-none opacity-60 invert':'py-3 gap-0 cursor-pointer invert'} onClick={() => {setSelectedFilter(['NEW','OPEN']);setSelected('NEWOPEN')}}>
+                    <CardHeader><CardTitle className="text-5xl text-center">{tickets.filter(ticket => (ticket.ticket_status==='NEW' || ticket.ticket_status==='OPEN') && ticket.inquirer?.user_type==='STUDENT').length}</CardTitle></CardHeader>
+                    <CardFooter className="px-0"><p className="text-sm text-center w-full">NEW & OPEN</p></CardFooter>
+                  </Card>
+                  <Card className={selected==='NEW'?'py-3 gap-0 pointer-events-none opacity-60 invert':'py-3 gap-0 cursor-pointer invert'} onClick={() => {setSelectedFilter(['NEW']);setSelected('NEW')}}>
+                    <CardHeader><CardTitle className="text-5xl text-center">{tickets.filter(ticket => (ticket.ticket_status==='NEW') && ticket.inquirer?.user_type==='STUDENT').length}</CardTitle></CardHeader>
+                    <CardFooter className="px-0"><p className="text-sm text-center w-full">NEW</p></CardFooter>
+                  </Card>
+                  <Card className={selected==='OPEN'?'py-3 gap-0 pointer-events-none opacity-60 invert':'py-3 gap-0 cursor-pointer invert'} onClick={() => {setSelectedFilter(['OPEN']);setSelected('OPEN')}}>
+                    <CardHeader><CardTitle className="text-5xl text-center">{tickets.filter(ticket => (ticket.ticket_status==='OPEN') && ticket.inquirer?.user_type==='STUDENT').length}</CardTitle></CardHeader>
+                    <CardFooter className="px-0"><p className="text-sm text-center w-full">OPEN</p></CardFooter>
+                  </Card>
+                  <Card className={selected==='CLOSED'?'py-3 gap-0 pointer-events-none opacity-60 invert':'py-3 gap-0 cursor-pointer invert'} onClick={() => {setSelectedFilter(['CLOSED']);setSelected('CLOSED')}}>
+                    <CardHeader><CardTitle className="text-5xl text-center">{tickets.filter(ticket => (ticket.ticket_status==='CLOSED') && ticket.inquirer?.user_type==='STUDENT').length}</CardTitle></CardHeader>
+                    <CardFooter className="px-0"><p className="text-sm text-center w-full">CLOSED</p></CardFooter>
+                  </Card>
                   <Button className={selected===''?'pointer-events-none opacity-50 w-full':'w-full bg-blue-500 text-white hover:bg-blue-500 hover:opacity-80'} onClick={() => {setSelectedFilter([]);setSelected('')}}>CLEAR</Button>
                 </div>
               </div>
