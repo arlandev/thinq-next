@@ -132,7 +132,7 @@ export default function TicketList({user_type, filter_status, tickets}:TicketLis
                             </TableCell> :
                             <TableCell>{ticket.ticket_status}</TableCell> 
                         }
-                        <TableCell id="assignmentValue" className="text-red-500 font-medium">
+                        <TableCell id="assignmentValue" className= {ticket.assignee_id === null ? 'text-red-500 font-medium' : 'text-green-500 font-medium'}>
                           {ticket.assignee_id === null 
                             ? 'Not Yet Assigned' 
                             : ticket.assignee 
