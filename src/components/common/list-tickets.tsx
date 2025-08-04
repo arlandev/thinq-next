@@ -62,9 +62,10 @@ interface TicketListProps {
     user_type: string;
     filter_status: string[];
     tickets: Ticket[];
+    onAssignmentComplete: () => void;
 }
 
-export default function TicketList({user_type, filter_status, tickets}:TicketListProps) {
+export default function TicketList({user_type, filter_status, tickets, onAssignmentComplete}:TicketListProps) {
 
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [resolvedTicket, setResolvedTicket] = useState<[Ticket,string,string]>([defaultTicket,"",""]);
@@ -151,6 +152,7 @@ export default function TicketList({user_type, filter_status, tickets}:TicketLis
                               concernDetails: ticket.ticket_details,
                             }}
                             trigger={<Button variant="outline">...</Button>}
+                            onAssignmentComplete={onAssignmentComplete}
                           />
                         </TableCell>
                 </TableRow>

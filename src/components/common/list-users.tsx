@@ -82,12 +82,12 @@ export default function UserList({user_role}:UserListProps) {
         const users = await readUsers();
         if (isMounted) {
           setCompleteUsers(users as unknown as User[]);
-          toast.success("Users loaded successfully");
+          toast.success("Users Loaded Successfully");
         }
       } catch (error) {
         console.error("Error fetching users:", error);
         if (isMounted) {
-          toast.error("Failed to load users");
+          toast.error("Failed to Load Users");
         }
       } finally {
         if (isMounted) {
@@ -102,6 +102,32 @@ export default function UserList({user_role}:UserListProps) {
       isMounted = false;
     };
   }, []);
+
+  const handleActivateDeactivate = async () => {
+    let isMounted = true;
+    
+    const fetchUsers = async () => {
+      try {
+        setIsLoading(true);
+        const users = await readUsers();
+        if (isMounted) {
+          setCompleteUsers(users as unknown as User[]);
+          toast.success("Users Loaded Successfully");
+        }
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        if (isMounted) {
+          toast.error("Failed to Load Users");
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchUsers();
+  }
 
   return (
     <PageLayout navbar={<NavBar navBarLink="/admin" navBarLinkName="Home" />}>
@@ -158,8 +184,10 @@ export default function UserList({user_role}:UserListProps) {
                             <TableCell className="text-right">
                             <DeactivateButton
                                 disable={user.user_status === "ACTIVE"}
+                                userId={user.id}
                                 userName={`${user.user_firstname} ${user.user_lastname}`}
                                 userEmail={user.user_email}
+                                onActivateDeactivate={handleActivateDeactivate}
                             />
                             </TableCell>
                     </TableRow>
@@ -178,10 +206,10 @@ export default function UserList({user_role}:UserListProps) {
                       setIsLoading(true);
                       const users = await readUsers();
                       setCompleteUsers(users as unknown as User[]);
-                      toast.success("Users list refreshed");
+                      toast.success("Users List Refreshed");
                     } catch (error) {
                       console.error("Error fetching users:", error);
-                      toast.error("Failed to refresh users list");
+                      toast.error("Failed to Refresh Users List");
                     } finally {
                       setIsLoading(false);
                     }

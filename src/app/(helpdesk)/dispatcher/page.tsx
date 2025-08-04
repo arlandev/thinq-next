@@ -67,12 +67,12 @@ function DispatcherHome() {
         const ticketsData = await readTickets();
         if (isMounted) {
           setTickets(ticketsData as unknown as Ticket[]);
-          toast.success("Tickets loaded successfully");
+          toast.success("Tickets Loaded Successfully");
         }
       } catch (error) {
         console.error("Error fetching tickets:", error);
         if (isMounted) {
-          toast.error("Failed to load tickets");
+          toast.error("Failed to Load Tickets");
         }
       } finally {
         if (isMounted) {
@@ -87,34 +87,37 @@ function DispatcherHome() {
       isMounted = false;
     };
   }, []);
-  
+
   // Function to handle tab changes - no longer needs to trigger loading
   const handleTabChange = (value: string) => {
     // Tab change no longer triggers data fetching
   };
-  
-  // const inquiries = [
-  //   {
-  //     id: "001",
-  //     referenceNumber: "INQ-2023-001",
-  //     inquirer: "john.doe@example.com",
-  //     concern: "Account Access",
-  //     status: "New",
-  //     assignedTo: "John Doe",
-  //   },
-  //   {
-  //     id: "002",
-  //     referenceNumber: "INQ-2023-002",
-  //     inquirer: "jane.smith@example.com",
-  //     concern: "Password Reset",
-  //     status: "Closed",
-  //     assignedTo: "Jose Rizal",
-  //     closedDate: "2023-11-20",
-  //     closedBy: "Jose Rizal",
-  //     resolutionNotes:
-  //       "User's password was successfully reset and account access was restored.",
-  //   },
-  // ];
+
+  const handleAssignmentCompletion = () => {
+    let isMounted = true;
+    const fetchTickets = async () => {
+      try {
+        setIsLoading(true);
+        const ticketsData = await readTickets();
+        if (isMounted) {
+          setTickets(ticketsData as unknown as Ticket[]);
+          toast.success("Tickets Refreshed Successfully");
+        }
+      } catch (error) {
+        console.error("Error fetching tickets:", error);
+        if (isMounted) {
+          toast.error("Failed to Refresh Tickets");
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchTickets();
+  }
+
 
   return (
     <PageLayout navbar={<NavBar />}>
@@ -168,7 +171,7 @@ function DispatcherHome() {
                         </TableRow>
                       </TableHeader>
                       <TableBody className="h-full">
-                        <TicketList user_type="EMPLOYEE" filter_status={selectedFilter} tickets={tickets}/>
+                        <TicketList user_type="EMPLOYEE" filter_status={selectedFilter} tickets={tickets} onAssignmentComplete={handleAssignmentCompletion}/>
                       </TableBody>
                     </Table>
                   </div>
@@ -215,7 +218,7 @@ function DispatcherHome() {
                         </TableRow>
                       </TableHeader>
                       <TableBody className="h-full">
-                        <TicketList user_type="STUDENT" filter_status={selectedFilter} tickets={tickets}/>
+                        <TicketList user_type="STUDENT" filter_status={selectedFilter} tickets={tickets} onAssignmentComplete={handleAssignmentCompletion}/>
                       </TableBody>
                     </Table>
                   </div>

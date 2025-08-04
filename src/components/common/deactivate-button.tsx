@@ -12,14 +12,49 @@ import {
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { deactivateUser, activateUser } from "@/app/actions/deactivateUser";
 
 interface deactivateProps {
     disable: boolean,
+    userId: number,
     userName: string,
-    userEmail: string
+    userEmail: string,
+    onActivateDeactivate?: () => void
 }
 
-function DeactivateButton( { disable, userName, userEmail } : deactivateProps ) {
+function DeactivateButton( { disable, userId, userName, userEmail, onActivateDeactivate } : deactivateProps ) {
+
+  const handleDeactivate = async () => {
+    try {
+      const response = await deactivateUser(userId);
+      if (response.success) {
+        toast.success("User Deactivated Successfully");
+        onActivateDeactivate?.();
+      } else {
+        toast.error("Failed to Deactivate User");
+      }
+    } catch (error) {
+      console.error("Error deactivating user:", error);
+      toast.error("Failed to deactivate user");
+    }
+  }
+
+  const handleActivate = async () => {
+    try {
+      const response = await activateUser(userId);
+      if (response.success) {
+        toast.success("User Activated Successfully");
+        onActivateDeactivate?.();
+      } else {
+        toast.error("Failed to Activate User");
+      }
+    } catch (error) {
+      console.error("Error activating user:", error);
+      toast.error("Failed to activate user");
+    }
+  }
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -68,7 +103,7 @@ function DeactivateButton( { disable, userName, userEmail } : deactivateProps ) 
           </div>
         </div>
         <DialogFooter>
-          <Button type="submit">
+          <Button type="submit" onClick={disable ? handleDeactivate : handleActivate}>
             {disable ? "Deactivate" : "Activate"}
           </Button>
         </DialogFooter>
