@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronsUpDown } from "lucide-react";
 import Link from "next/link";
 
 import NavBar from "@/components/common/navbar";
 import PageLayout from "@/components/common/page-layout";
+import { Skeleton } from "@/components/ui/skeleton";
+
 
 import {
   Card,
@@ -38,19 +40,43 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 
 import { submitForm } from "@/app/actions/submitForm";
+import { readConcerns } from "@/app/actions/readConcerns";
 
-const concerns = [
-  { concernValue: "concern1", label: "Concern 1" },
-  { concernValue: "concern2", label: "Concern 2" },
-  { concernValue: "concern3", label: "Concern 3" },
-  { concernValue: "concern4", label: "Concern 4" },
-];
+interface Concern {
+  concern_id: number;
+  concern_title: string;
+  concern_faq:{}[];
+  applicable_to: string;
+}
+
+interface Subconcern {
+  subconcern_id: number;
+  subconcern_title: string;
+
+  concern?: {
+    concern_id:number;
+  }
+}
+
+const subconcernslist =[
+  {subconcern_id: 1, subconcern_title:'sub1', concern_id:1},
+  {subconcern_id: 2, subconcern_title:'sub2', concern_id:1},
+  {subconcern_id: 3, subconcern_title:'sub3', concern_id:2}
+]
 
 const InquiryForm = () => {
+  // TODO: add file upload
   const [currentStep, setCurrentStep] = useState(0);
+  const [submittedTicket, setSubmittedTicket] = useState<any>(null);
 
+  const [concerns, setConcerns] = useState<Concern[]>([])
   const [openConcerns, setOpenConcerns] = useState(false);
   const [concernValue, setConcernValue] = useState("");
+
+  const [subconcerns, setSubconcerns] = useState<Subconcern[]>([])
+  const [openSubconcerns, setOpenSubconcerns] = useState(false);
+  const [subconcernValue, setSubconcernValue] = useState("");
+  const [waitingSubmission, setWaitingSubmission] = useState(false);
 
   const [fileArray, setFileArray] = useState<File[]>([]);
 
@@ -64,10 +90,33 @@ const InquiryForm = () => {
     details: "",
   });
 
-  const isFormComplete =
-    formData.concern.trim() !== "" &&
-    formData.subconcern.trim() !== "" &&
-    formData.details.trim() !== "";
+  useEffect(() => {
+    let isMounted = true;
+    
+    const fetchConcerns = async () => {
+      try {
+        const concernsData = await readConcerns();
+        if (isMounted) {
+          setConcerns(concernsData as unknown as Concern[]);
+          toast.success("Loaded successfully");
+        }
+
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        if (isMounted) {
+          toast.error("Failed to load");
+        }
+      }
+    };
+
+    fetchConcerns();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const isFormComplete = formData.concern.trim() !== "" && formData.subconcern.trim() !== "" && formData.details.trim() !== "";
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -84,9 +133,7 @@ const InquiryForm = () => {
   };
 
   const nextStep = (e: React.MouseEvent<HTMLButtonElement>) => {
-    // Ensure we prevent any default form submission
     if (e) e.preventDefault();
-
     if (currentStep < 2) {
       setCurrentStep(currentStep + 1);
     }
@@ -94,17 +141,23 @@ const InquiryForm = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
+    // console.log("Form submitted:", formData);
+
+    setWaitingSubmission(true);
 
     setCurrentStep(currentStep + 1);
 
+    // TODO: add file upload
     const result = await submitForm(formData);
     console.log(result);
 
     if (result) {
+      setWaitingSubmission(false);
+      setSubmittedTicket(result);
       toast.success("Inquiry submitted successfully");
     } else {
       toast.error("Failed to submit inquiry");
+      setWaitingSubmission(false);
     }
 
     // Handle form submission logic here
@@ -165,17 +218,8 @@ const InquiryForm = () => {
               </Label>
               <Popover open={openConcerns} onOpenChange={setOpenConcerns}>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={openConcerns}
-                    className="w-64 justify-between"
-                  >
-                    {concernValue
-                      ? concerns.find(
-                          (concern) => concern.concernValue === concernValue,
-                        )?.label
-                      : "Select concern..."}
+                  <Button variant="outline" role="combobox" aria-expanded={openConcerns} className="w-64 justify-between">
+                    {concernValue ? concerns.find((concern) => concern.concern_title === concernValue,)?.concern_title : "Select concern..."}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
@@ -187,18 +231,11 @@ const InquiryForm = () => {
                       <CommandGroup>
                         {concerns.map((concern) => (
                           <CommandItem
-                            key={concern.concernValue}
-                            value={concern.concernValue}
+                            key={concern.concern_id}
+                            value={concern.concern_title}
                             onSelect={(currentValue) => {
-                              setConcernValue(
-                                currentValue === concernValue
-                                  ? ""
-                                  : currentValue,
-                              );
-                              setFormData({
-                                ...formData,
-                                concern: currentValue,
-                              });
+                              setConcernValue(currentValue === concernValue ? "" : currentValue,);
+                              setFormData({...formData, concern: currentValue});
                               setOpenConcerns(false);
                               toast(`View FAQs for ${currentValue} concerns`, {
                                 description: "Swipe to dismiss",
@@ -213,7 +250,7 @@ const InquiryForm = () => {
                               });
                             }}
                           >
-                            {concern.label}
+                            {concern.concern_title}
                           </CommandItem>
                         ))}
                       </CommandGroup>
@@ -224,22 +261,42 @@ const InquiryForm = () => {
             </div>
 
             <div>
-              <Label htmlFor="subconcern" className="mb-1">
-                Specific Concern
-              </Label>
-              <Input
-                id="subconcern"
-                name="subconcern"
-                value={formData.subconcern}
-                onChange={handleInputChange}
-                placeholder="What's the specific issue?"
-              />
+              <Label htmlFor="subconcern" className="mb-1">Specific Concern</Label>
+              <Popover open={openSubconcerns} onOpenChange={setOpenSubconcerns}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" role="combobox" aria-expanded={openConcerns} className="w-64 justify-between">
+                    {subconcernValue ? subconcernslist.find((subconcern) => subconcern.subconcern_title === subconcernValue,)?.subconcern_title : "What's the specific issue?"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-0">
+                  <Command>
+                    <CommandInput placeholder="Search sub-concern..." />
+                    <CommandEmpty>No Sub-Concern found.</CommandEmpty>
+                    <CommandList>
+                      <CommandGroup>
+                        {subconcernslist.map((subconcern) => (
+                          <CommandItem
+                            key={subconcern.subconcern_id}
+                            value={subconcern.subconcern_title}
+                            onSelect={(currentValue) => {
+                              setSubconcernValue(currentValue === subconcernValue ? "" : currentValue,);
+                              setFormData({...formData, subconcern: currentValue});
+                              setOpenSubconcerns(false);
+                            }}
+                          >
+                            {subconcern.subconcern_title}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div>
-              <Label htmlFor="details" className="mb-1">
-                Concern:
-              </Label>
+              <Label htmlFor="details" className="mb-1">Concern:</Label>
               <Textarea
                 id="details"
                 name="details"
@@ -250,9 +307,7 @@ const InquiryForm = () => {
             </div>
 
             <div>
-              <Label htmlFor="attachments" className="mb-1">
-                Supporting Documents:
-              </Label>
+              <Label htmlFor="attachments" className="mb-1">Supporting Documents:</Label>
               <FileInput
                 id="attachments"
                 multiple={true}
@@ -272,9 +327,7 @@ const InquiryForm = () => {
                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                 className="w-full"
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Upload relevant documents (PDF, Word, Images)
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">Upload relevant documents (PDF, Word, Images)</p>
             </div>
           </div>
         </div>
@@ -344,7 +397,13 @@ const InquiryForm = () => {
             <p className="text-center text-xl text-bold">
               <b>REFERENCE NUMBER</b>
             </p>
-            <p className="text-center text-md text-bold">12345</p>
+            { waitingSubmission ? 
+              <Skeleton className="w-full h-10" />
+              : 
+              <p className="text-center text-md text-bold">
+                {submittedTicket?.reference_number || "N/A"}
+              </p>
+            }
           </CardContent>
         </Card>
       </CardContent>

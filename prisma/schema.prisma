@@ -77,32 +77,26 @@ enum ApplicableTo {
 
 
 model Ticket {
-  ticket_id             Int        @id @default(autoincrement())
-  ticket_submitteddate  DateTime @default(now()) @db.Timestamptz
-  ticket_assigneddate   DateTime? @db.Timestamptz
-  
-  // Inquirer (submitter) relation
-  inquirer_id           Int
-  inquirer              User       @relation("TicketInquirer", fields: [inquirer_id], references: [id])
-  
-  // Assignee relation
-  assignee_id           Int?
-  assignee              User?      @relation("TicketAssignee", fields: [assignee_id], references: [id])
-  
-  concern_id            Int
-  concern               Concern    @relation(fields: [concern_id], references: [concern_id])
-  ticket_concern        String
-  ticket_subconcern     String
-  ticket_details        String
-  ticket_attachment     String[]
-  ticket_status         TicketStatus @default(NEW)
-  ticket_resolution     String?
-  ticket_rating         Int?
-  ticket_resolveddate   DateTime? @db.Timestamptz
-
-  // Closed By relation
-  ticket_closedby       Int?
-  closedby              User?     @relation("TicketClosedBy", fields: [ticket_closedby], references: [id])
+  ticket_id            Int          @id @default(autoincrement())
+  reference_number     String?
+  ticket_submitteddate DateTime     @default(now()) @db.Timestamptz
+  ticket_assigneddate  DateTime?    @db.Timestamptz
+  inquirer_id          Int
+  assignee_id          Int?
+  concern_id           Int
+  ticket_concern       String
+  ticket_subconcern    String
+  ticket_details       String
+  ticket_attachment    String[]
+  ticket_status        TicketStatus @default(NEW)
+  ticket_resolution    String?
+  ticket_rating        Int?
+  ticket_closedby      Int?
+  ticket_resolveddate  DateTime?    @db.Timestamptz
+  assignee             User?        @relation("TicketAssignee", fields: [assignee_id], references: [id])
+  concern              Concern      @relation(fields: [concern_id], references: [concern_id])
+  inquirer             User         @relation("TicketInquirer", fields: [inquirer_id], references: [id])
+  closedby             User?        @relation("TicketClosedBy", fields: [ticket_closedby], references: [id])
 
   @@map("tickets")
 }
