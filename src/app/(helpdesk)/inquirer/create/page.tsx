@@ -227,7 +227,7 @@ const InquiryForm = () => {
               </Label>
               <Popover open={openConcerns} onOpenChange={setOpenConcerns}>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" role="combobox" aria-expanded={openConcerns} className="w-64 justify-between">
+                  <Button variant="outline" role="combobox" aria-expanded={openConcerns} className="w-full justify-between">
                     {concernValue ? concerns.find((concern) => concern.concern_title === concernValue,)?.concern_title : "Select concern..."}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
@@ -273,7 +273,7 @@ const InquiryForm = () => {
               <Label htmlFor="subconcern" className="mb-1">Specific Concern</Label>
               <Popover open={openSubconcerns} onOpenChange={setOpenSubconcerns}>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" role="combobox" aria-expanded={openConcerns} className="w-64 justify-between">
+                  <Button variant="outline" role="combobox" aria-expanded={openConcerns} className="w-full justify-between">
                     {subconcernValue ? subconcernslist.find((subconcern) => subconcern.subconcern_title === subconcernValue,)?.subconcern_title : "What's the specific issue?"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>

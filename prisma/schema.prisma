@@ -123,3 +123,10 @@ model affiliation {
   affiliation_name String
   affiliation_abbreviation String
 }
+
+model subconcern {
+  subconcern_id     Int       @id default(autoincrement())
+  subconcern_title  String
+  concern           Concern?   @relation(fields: [concern_id], references: [concern_id])
+  concern_id        Int?
+}
