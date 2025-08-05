@@ -27,7 +27,7 @@ export default function AreaChartVisual({title,chartConfig,chartData,dataKey,dat
                     <AreaChart
                         accessibilityLayer
                         data={chartData}
-                        margin={{ left: 12, right: 12 }}
+                        margin={{ top:20, left: 12, right: 12 }}
                     >
                         <CartesianGrid vertical={false} />
                         <XAxis
@@ -52,7 +52,7 @@ export default function AreaChartVisual({title,chartConfig,chartData,dataKey,dat
                             fill={fill2}
                             fillOpacity={0.4}
                             stroke={fill2}
-                            stackId="a"
+                            stackId="b"
                         />
                         <ChartLegend content={<ChartLegendContent />} />
                     </AreaChart>

@@ -18,7 +18,6 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 
 import { readTickets } from "@/app/actions/readTickets";
-import { Months } from "react-day-picker";
 
 interface Ticket {
   ticket_id: number;
@@ -63,6 +62,7 @@ export default function AdminAnalyticsPage() {
   const [concernFilter, setConcernFilter] = useState<string>('')
   //data
   const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [filteredTickets, setFilteredTickets] = useState<Ticket[]>([]);
 
   //fetch tickets
   useEffect(() => {
@@ -75,6 +75,7 @@ export default function AdminAnalyticsPage() {
           setTickets(ticketsData as unknown as Ticket[]);
           toast.success("Dashboard loaded successfully");
         }
+
       } catch (error) {
         console.error("Error fetching data:", error);
         if (isMounted) {
@@ -89,6 +90,17 @@ export default function AdminAnalyticsPage() {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    const filtered = tickets.filter(ticket => {
+      const selectedStatus = statusFilter==='' || ticket.ticket_status===statusFilter;
+      const selectedConcern = concernFilter==='' || ticket.ticket_concern===concernFilter;
+      
+      return selectedStatus && selectedConcern
+    })
+
+    setFilteredTickets(filtered)
+  }, [tickets, statusFilter, concernFilter])
 
   // -------------------COLORS
   const STATUS_COLORS: Record<string, string> = {
@@ -108,7 +120,7 @@ export default function AdminAnalyticsPage() {
   //-------------------SET & GET CHART DATA
 
   //status
-  const setTicketStatusCount = tickets.reduce((acc, ticket) => {
+  const setTicketStatusCount = filteredTickets.reduce((acc, ticket) => {
     const status = ticket.ticket_status;
     acc[status] = (acc[status] || 0) + 1;
     return acc;
@@ -120,7 +132,7 @@ export default function AdminAnalyticsPage() {
     fill: STATUS_COLORS[status] || "#ccc",
   }));
 
-  const setConcernCount = tickets.reduce((acc, ticket) => {
+  const setConcernCount = filteredTickets.reduce((acc, ticket) => {
     const concern = ticket.ticket_concern;
     acc[concern] = (acc[concern] || 0) + 1;
     return acc;
@@ -133,7 +145,7 @@ export default function AdminAnalyticsPage() {
   .sort((a, b) => b.tickets - a.tickets)
   .slice(0, 5);
 
-  const setTicketRatingCount = tickets.reduce((acc, ticket) => {
+  const setTicketRatingCount = filteredTickets.reduce((acc, ticket) => {
     const rating = ticket.ticket_rating;
     if (typeof rating === "number") {
       rating > 1 ? 
@@ -161,7 +173,7 @@ export default function AdminAnalyticsPage() {
     return found ? found.label : ">20";
   }
 
-  const setResolutionCount = tickets.reduce((acc, ticket) => {
+  const setResolutionCount = filteredTickets.reduce((acc, ticket) => {
 
     if(ticket.ticket_resolveddate instanceof Date) {
       const daysResolved = differenceInDays(ticket.ticket_resolveddate, ticket.ticket_submitteddate);
@@ -178,7 +190,7 @@ export default function AdminAnalyticsPage() {
 
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
-  const setPendingCount = tickets.filter(ticket => ticket.ticket_status==='NEW' || ticket.ticket_status==='OPEN').reduce((acc, ticket) => {
+  const setPendingCount = filteredTickets.filter(ticket => ticket.ticket_status==='NEW' || ticket.ticket_status==='OPEN').reduce((acc, ticket) => {
 
     const date = new Date(ticket.ticket_submitteddate);
     const monthName = months[date.getMonth()] ?? '';
@@ -187,7 +199,7 @@ export default function AdminAnalyticsPage() {
     return acc;
   }, {} as Record<string, number>);
 
-  const setClosedCount = tickets.filter(ticket => ticket.ticket_status==='CLOSED').reduce((acc, ticket) => {
+  const setClosedCount = filteredTickets.filter(ticket => ticket.ticket_status==='CLOSED').reduce((acc, ticket) => {
 
     const date = new Date(ticket.ticket_submitteddate);
     const monthName = months[date.getMonth()] ?? '';
@@ -280,7 +292,7 @@ export default function AdminAnalyticsPage() {
   } satisfies ChartConfig
 
 
-  const ratedTickets = tickets.filter(ticket => typeof ticket.ticket_rating === "number");
+  const ratedTickets = filteredTickets.filter(ticket => typeof ticket.ticket_rating === "number");
   const totalRating = ratedTickets.reduce((sum, ticket) => sum + ticket.ticket_rating, 0);
 
   return (
@@ -291,30 +303,30 @@ export default function AdminAnalyticsPage() {
         </div>
 
         {/* filter */}
-        <div className="row-start-1 col-end-8">
+        <div className="row-start-1 col-end-8 place-items-end">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Ticket Status"/>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="NEW" onClick={() => setStatusFilter('NEW')}>NEW</SelectItem>
-              <SelectItem value="OPEN" onClick={() => setStatusFilter('OPEN')}>OPEN</SelectItem>
-              <SelectItem value="CLOSED" onClick={() => setStatusFilter('CLOSED')}>CLOSED</SelectItem>
+              {[...new Set(tickets.map(ticket => ticket.ticket_status))].map((status) => (
+                <SelectItem key={status} value={status} onClick={() => setStatusFilter(status)}>{status}</SelectItem>
+              ))}
               <Separator className="my-1"/>
               <a className="ml-2 text-xs opacity-50 hover:opacity-25 cursor-pointer" onClick={() => setStatusFilter('')}>Clear Selection</a>
             </SelectContent>
           </Select>
         </div>
 
-        <div className="row-start-1 col-end-7 place-items-end">
+        <div className="row-start-1 col-end-7 col-span-2 place-items-end">
           <Select value={concernFilter} onValueChange={setConcernFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Concern"/>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="NEW" onClick={() => setStatusFilter('NEW')}>NEW</SelectItem>
-              <SelectItem value="OPEN" onClick={() => setStatusFilter('OPEN')}>OPEN</SelectItem>
-              <SelectItem value="CLOSED" onClick={() => setStatusFilter('CLOSED')}>CLOSED</SelectItem>
+              {[...new Set(tickets.map(ticket => ticket.ticket_concern))].map((concern) => (
+                <SelectItem key={concern} value={concern} onClick={() => setConcernFilter(concern)}>{concern}</SelectItem>
+              ))}
               <Separator className="my-1"/>
               <a className="ml-2 text-xs opacity-50 hover:opacity-25 cursor-pointer" onClick={() => setConcernFilter('')}>Clear Selection</a>
             </SelectContent>
@@ -324,13 +336,13 @@ export default function AdminAnalyticsPage() {
 
         {/* number cards */}
         <div className="row-start-2 col-span-1">
-          <NumberCard count={tickets.filter(ticket => ticket.ticket_status==='NEW'||ticket.ticket_status==='OPEN').length} title="Pending Tickets" />
+          <NumberCard count={filteredTickets.filter(ticket => ticket.ticket_status==='NEW'||ticket.ticket_status==='OPEN').length} title="Pending Tickets" />
         </div>
         <div className="row-start-3 col-span-1">
-          <NumberCard count={tickets.filter(ticket => ticket.assignee_id===null).length} title="Unassigned Tickets" />
+          <NumberCard count={filteredTickets.filter(ticket => ticket.assignee_id===null).length} title="Unassigned Tickets" />
         </div>
         <div className="row-start-4 col-span-1">
-          <NumberCard count={tickets.filter(ticket => ticket.ticket_status==='CLOSED').length} title="Resolved Tickets" />
+          <NumberCard count={filteredTickets.filter(ticket => ticket.ticket_status==='CLOSED').length} title="Resolved Tickets" />
         </div>
         <div className="row-start-5 col-span-1">
           <NumberCard count={ratedTickets.length > 0 ? Number((totalRating/ratedTickets.length).toFixed(1)) : 0} title="Average Ticket Rating" />
