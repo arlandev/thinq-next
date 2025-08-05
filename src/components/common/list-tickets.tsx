@@ -21,7 +21,7 @@ interface Ticket {
     ticket_resolution: string;
     ticket_closedby: number | null;
     ticket_resolveddate: Date;
-
+    reference_number: string;
     inquirer?: {
         user_type: string;
         user_firstname: string;
@@ -56,6 +56,7 @@ const defaultTicket: Ticket = {
     ticket_resolution:"",
     ticket_closedby:0,
     ticket_resolveddate: new Date(),
+    reference_number: "N/A",
 }
 
 interface TicketListProps {
@@ -123,7 +124,9 @@ export default function TicketList({user_type, filter_status, tickets, onAssignm
               {tickets.filter(ticket => (filter_status.length === 0 || filter_status.includes(ticket.ticket_status)) && ticket.inquirer?.user_type === user_type).map((ticket: Ticket) => (
                 <TableRow key={ticket.ticket_id}>
                     <TableCell className="font-medium">{ticket.ticket_submitteddate.toLocaleDateString('en-CA').replace(/-/g, '/')}</TableCell>
-                        <TableCell>{ticket.ticket_id}</TableCell>
+                        <TableCell>
+                          {ticket.reference_number === null ? "N/A" : ticket.reference_number}
+                        </TableCell>
                         <TableCell>{ticket.ticket_concern}</TableCell>
                         {ticket.ticket_status==='CLOSED'?
                             <TableCell 
@@ -144,7 +147,7 @@ export default function TicketList({user_type, filter_status, tickets, onAssignm
                         <TableCell className="text-right">
                           <InquiryDetailsDialog
                             inquiry={{
-                              referenceNumber: ticket.ticket_id.toString(),
+                              referenceNumber: ticket.reference_number,
                               inquirerEmail: ticket.inquirer?.user_email ?? '',
                               affiliation: ticket.inquirer?.user_affiliation ?? '',
                               concern: ticket.ticket_concern,

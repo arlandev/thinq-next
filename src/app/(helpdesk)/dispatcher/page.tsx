@@ -28,7 +28,7 @@ interface Ticket {
     ticket_resolution: string;
     ticket_closedby: number | null;
     ticket_resolveddate: Date;
-
+    reference_number: string;
     inquirer?: {
         user_type: string;
         user_firstname: string;
@@ -66,6 +66,7 @@ function DispatcherHome() {
       try {
         setIsLoading(true);
         const ticketsData = await readTickets();
+        console.log(ticketsData);
         if (isMounted) {
           setTickets(ticketsData as unknown as Ticket[]);
           toast.success("Tickets Loaded Successfully");

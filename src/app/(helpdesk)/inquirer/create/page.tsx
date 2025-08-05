@@ -148,15 +148,24 @@ const InquiryForm = () => {
     setCurrentStep(currentStep + 1);
 
     // TODO: add file upload
-    const result = await submitForm(formData);
-    console.log(result);
+    try {
+      const result = await submitForm(formData);
+      // console.log("Submit result:", result);
 
-    if (result) {
-      setWaitingSubmission(false);
-      setSubmittedTicket(result);
-      toast.success("Inquiry submitted successfully");
-    } else {
-      toast.error("Failed to submit inquiry");
+      if (result) {
+        // Add a small delay so the skeleton is visible
+        setTimeout(() => {
+          setWaitingSubmission(false);
+          setSubmittedTicket(result);
+        }, 1000); // 1 second delay
+        toast.success("Inquiry Submitted Successfully");
+      } else {
+        toast.error("Failed to Submit Inquiry");
+        setWaitingSubmission(false);
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast.error("Failed to Submit Inquiry");
       setWaitingSubmission(false);
     }
 
@@ -398,7 +407,7 @@ const InquiryForm = () => {
               <b>REFERENCE NUMBER</b>
             </p>
             { waitingSubmission ? 
-              <Skeleton className="w-full h-10" />
+              <Skeleton className="w-full h-10 bg-gray-300" />
               : 
               <p className="text-center text-md text-bold">
                 {submittedTicket?.reference_number || "N/A"}
