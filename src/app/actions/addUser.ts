@@ -35,7 +35,7 @@ export async function addUser(email: string, firstname: string, lastname: string
             userType = UserType.EMPLOYEE;
             break;
         default:
-            userType = UserType.STUDENT;
+            userType = UserType.EMPLOYEE;
             break;
     }
 
@@ -49,9 +49,8 @@ export async function addUser(email: string, firstname: string, lastname: string
             user_password: "password",
             user_role: userRole,
             user_type: userType,
-            user_affiliation: "CICS"
+            user_affiliation: affiliation
         }
     })
-    console.log("User added to database:", user);
     return user;
 }
