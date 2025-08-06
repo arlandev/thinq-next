@@ -67,6 +67,7 @@ model Concern {
   applicable_to   ApplicableTo       @default(ALL)
   
   tickets         Ticket[]
+  subconcerns     subconcern[]
 }
 
 enum ApplicableTo {
@@ -125,7 +126,7 @@ model affiliation {
 }
 
 model subconcern {
-  subconcern_id     Int       @id default(autoincrement())
+  subconcern_id     Int       @id @default(autoincrement())
   subconcern_title  String
   concern           Concern?   @relation(fields: [concern_id], references: [concern_id])
   concern_id        Int?

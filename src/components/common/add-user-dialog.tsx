@@ -89,6 +89,19 @@ export default function AddUserDialog( {addType, onUserAdded, userType}: AddUser
     }
   };
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        console.log(text);
+        // Parse the text content
+      };
+      reader.readAsText(file);
+    }
+  };
+
   const handleInputChange = (id: number, field: string, value: string) => {
     setNewUser(
       newUser.map((newUser) =>
@@ -249,8 +262,23 @@ return (
                         <hr className="col-span-6 h-1 bg-primary border-0 rounded-sm dark:bg-gray-700" />
                     </div>
 
-                    <div className="grid grid-cols-4 gap-2 w-ful">
-                        <Button className="col-start-2 cursor-pointer" onClick={(e) => e.preventDefault()}>CSV Import</Button>
+                    <div className="grid grid-cols-4 gap-2 w-full">
+                        <div className="col-start-2">
+                            <input
+                                type="file"
+                                accept=".csv"
+                                onChange={handleFileChange}
+                                className="hidden"
+                                id="csv-import"
+                            />
+                            <Button 
+                                type="button"
+                                className="cursor-pointer" 
+                                onClick={() => document.getElementById('csv-import')?.click()}
+                            >
+                                CSV Import
+                            </Button>
+                        </div>
                         <Button className="col-start-3 cursor-pointer" type="submit">Add</Button>
                     </div>
                 </div>
