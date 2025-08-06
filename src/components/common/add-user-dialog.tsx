@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import type { JSX } from "react";
-import { CirclePlus } from 'lucide-react';
+import { CirclePlus, Loader2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -77,6 +77,8 @@ export default function AddUserDialog({
     affiliation: string;
     status: string;
   }[]>([]);
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isAddMany = newUser.length > 1;
 
@@ -187,12 +189,12 @@ export default function AddUserDialog({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsSubmitting(true);
     console.log("User to be added to database:", newUser);
 
-    // CSV Input
-    if (csvFile !== null && csvFileContent.length > 0) {
-      try {
-        
+    try {
+      // CSV Input
+      if (csvFile !== null && csvFileContent.length > 0) {
         // Set user role based on user type
         const userType = addType.toLowerCase();
         let user_role: number;
@@ -214,14 +216,8 @@ export default function AddUserDialog({
         const result = await addUserCsv(csvFileContent, user_role);
         toast.success("User(s) Added Successfully");
         onUserAdded?.(); // Refresh user list
-
         clearCsvFile();
-      } catch (error) {
-        console.error("Error adding user:", error);
-        toast.error("Failed to Add User(s)");
-      }
-    } else {
-      try {
+      } else {
         for (const user of newUser) {
           const userType = addType.toLowerCase();
           let user_role: number;
@@ -279,13 +275,13 @@ export default function AddUserDialog({
   
         toast.success("User(s) Added Successfully");
         onUserAdded?.(); // Call the callback to refresh the list
-      } catch (error) {
-        console.error("Error adding user:", error);
-        toast.error("Failed to Add User(s)");
       }
+    } catch (error) {
+      console.error("Error adding user:", error);
+      toast.error("Failed to Add User(s)");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    
   };
 
   return (
@@ -528,8 +524,19 @@ export default function AddUserDialog({
                   </Button>
                 )}
               </div>
-              <Button className="col-start-3 cursor-pointer" type="submit">
-                Add
+              <Button 
+                 className="col-start-3 cursor-pointer" 
+                 type="submit"
+                 disabled={isSubmitting}
+               >
+                 {isSubmitting ? (
+                   <>
+                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                     Adding...
+                   </>
+                 ) : (
+                   "Add"
+                 )}
               </Button>
             </div>
           </div>
