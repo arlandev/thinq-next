@@ -8,7 +8,6 @@ import NavBar from "@/components/common/navbar";
 import PageLayout from "@/components/common/page-layout";
 import { Skeleton } from "@/components/ui/skeleton";
 
-
 import {
   Card,
   CardHeader,
@@ -17,7 +16,7 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+// import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -41,6 +40,7 @@ import { toast } from "sonner";
 
 import { submitForm } from "@/app/actions/submitForm";
 import { readConcerns } from "@/app/actions/readConcerns";
+import { readSubconcerns } from "@/app/actions/readSubconcerns";
 
 interface Concern {
   concern_id: number;
@@ -55,25 +55,26 @@ interface Subconcern {
 
   concern?: {
     concern_id:number;
+    concern_title:string;
   }
 }
 
-const subconcernslist =[
-  {subconcern_id: 1, subconcern_title:'sub1', concern_id:1},
-  {subconcern_id: 2, subconcern_title:'sub2', concern_id:1},
-  {subconcern_id: 3, subconcern_title:'sub3', concern_id:2}
-]
-
 const InquiryForm = () => {
+
+  const userType = 'STUDENT' //temporary
+
   // TODO: add file upload
   const [currentStep, setCurrentStep] = useState(0);
   const [submittedTicket, setSubmittedTicket] = useState<any>(null);
 
   const [concerns, setConcerns] = useState<Concern[]>([])
+
   const [openConcerns, setOpenConcerns] = useState(false);
   const [concernValue, setConcernValue] = useState("");
 
   const [subconcerns, setSubconcerns] = useState<Subconcern[]>([])
+  const [filteredSubconcerns, setFilteredSubconcerns] = useState<Subconcern[]>([])
+
   const [openSubconcerns, setOpenSubconcerns] = useState(false);
   const [subconcernValue, setSubconcernValue] = useState("");
   const [waitingSubmission, setWaitingSubmission] = useState(false);
@@ -98,7 +99,6 @@ const InquiryForm = () => {
         const concernsData = await readConcerns();
         if (isMounted) {
           setConcerns(concernsData as unknown as Concern[]);
-          toast.success("Loaded successfully");
         }
 
       } catch (error) {
@@ -115,6 +115,43 @@ const InquiryForm = () => {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    
+    const fetchSubconcerns = async () => {
+      try {
+        const subconcernsData = await readSubconcerns();
+        if (isMounted) {
+          setSubconcerns(subconcernsData as unknown as Subconcern[]);
+          toast.success("Loaded successfully");
+        }
+
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        if (isMounted) {
+          toast.error("Failed to load");
+        }
+      }
+    };
+
+    fetchSubconcerns();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const selectedConcern = concerns.find(c => c.concern_title === concernValue && c.applicable_to === userType)
+  
+    if (selectedConcern) {
+      const filtered = subconcerns.filter(sub => sub.concern?.concern_id === selectedConcern.concern_id)
+      setFilteredSubconcerns(filtered);
+    } else {
+      setFilteredSubconcerns([]);
+    }
+  }, [concernValue, concerns, subconcerns])
 
   const isFormComplete = formData.concern.trim() !== "" && formData.subconcern.trim() !== "" && formData.details.trim() !== "";
 
@@ -228,17 +265,17 @@ const InquiryForm = () => {
               <Popover open={openConcerns} onOpenChange={setOpenConcerns}>
                 <PopoverTrigger asChild>
                   <Button variant="outline" role="combobox" aria-expanded={openConcerns} className="w-full justify-between">
-                    {concernValue ? concerns.find((concern) => concern.concern_title === concernValue,)?.concern_title : "Select concern..."}
+                    {concernValue ? concerns.filter(concern => concern.applicable_to===userType).find((concern) => concern.concern_title === concernValue,)?.concern_title : "Select concern..."}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-64 p-0">
+                <PopoverContent className="w-full p-0">
                   <Command>
                     <CommandInput placeholder="Search concern..." />
                     <CommandEmpty>No Concern found.</CommandEmpty>
                     <CommandList>
                       <CommandGroup>
-                        {concerns.map((concern) => (
+                        {concerns.filter(concern => concern.applicable_to===userType).map((concern) => (
                           <CommandItem
                             key={concern.concern_id}
                             value={concern.concern_title}
@@ -273,23 +310,23 @@ const InquiryForm = () => {
               <Label htmlFor="subconcern" className="mb-1">Specific Concern</Label>
               <Popover open={openSubconcerns} onOpenChange={setOpenSubconcerns}>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" role="combobox" aria-expanded={openConcerns} className="w-full justify-between">
-                    {subconcernValue ? subconcernslist.find((subconcern) => subconcern.subconcern_title === subconcernValue,)?.subconcern_title : "What's the specific issue?"}
+                  <Button variant="outline" role="combobox" aria-expanded={openSubconcerns} className="w-full justify-between">
+                    {subconcernValue ? filteredSubconcerns.find((subconcern) => subconcern.subconcern_title === subconcernValue)?.subconcern_title : "What's the specific issue?"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-64 p-0">
+                <PopoverContent className="w-full p-0">
                   <Command>
                     <CommandInput placeholder="Search sub-concern..." />
                     <CommandEmpty>No Sub-Concern found.</CommandEmpty>
                     <CommandList>
                       <CommandGroup>
-                        {subconcernslist.map((subconcern) => (
+                        {filteredSubconcerns.map((subconcern) => (
                           <CommandItem
                             key={subconcern.subconcern_id}
                             value={subconcern.subconcern_title}
                             onSelect={(currentValue) => {
-                              setSubconcernValue(currentValue === subconcernValue ? "" : currentValue,);
+                              setSubconcernValue(currentValue === subconcernValue ? "" : currentValue);
                               setFormData({...formData, subconcern: currentValue});
                               setOpenSubconcerns(false);
                             }}
