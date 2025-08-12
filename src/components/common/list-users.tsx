@@ -61,6 +61,7 @@ interface User {
   user_type: string;
   user_affiliation: string;
   user_status: string;
+  submitted_tickets?: any[];
 }
 
 interface UserListProps {
@@ -218,7 +219,27 @@ export default function UserList({user_role}:UserListProps) {
                 }}
                 userType={user_role}
               />
-              <BatchDeactivateDialog users={usersSample} />
+              <BatchDeactivateDialog 
+                users={completeUsers} 
+                user_role={user_role} 
+                onUsersDeactivated={() => {
+                  // Refresh the users list after batch deactivation
+                  const fetchUsers = async () => {
+                    try {
+                      setIsLoading(true);
+                      const users = await readUsers();
+                      setCompleteUsers(users as unknown as User[]);
+                      toast.success("Users List Refreshed");
+                    } catch (error) {
+                      console.error("Error fetching users:", error);
+                      toast.error("Failed to Refresh Users List");
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  };
+                  fetchUsers();
+                }}
+              />
             </div>
           </>
         )}
