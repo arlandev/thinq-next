@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient"
 import { ChevronsUpDown } from "lucide-react";
 import Link from "next/link";
-
 import NavBar from "@/components/common/navbar";
 import PageLayout from "@/components/common/page-layout";
 import { Skeleton } from "@/components/ui/skeleton";
-
 import {
   Card,
   CardHeader,
@@ -37,6 +36,17 @@ import {
 } from "@/components/ui/popover";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 import { submitForm } from "@/app/actions/submitForm";
 import { readConcerns } from "@/app/actions/readConcerns";
@@ -90,6 +100,8 @@ const InquiryForm = () => {
     subconcern: "",
     details: "",
   });
+
+  const [openedFaq, setOpenedFaq] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -153,7 +165,24 @@ const InquiryForm = () => {
     }
   }, [concernValue, concerns, subconcerns])
 
-  const isFormComplete = formData.concern.trim() !== "" && formData.subconcern.trim() !== "" && formData.details.trim() !== "";
+  const isFirstSectionComplete = formData.concern.trim() !== ""
+  const isSecondSectionComplete = formData.subconcern.trim() !== "" && formData.details.trim() !== "";
+
+  async function openFaq(concern: string) {
+    // Generate signed URL valid for 1 hour
+    const { data, error } = await supabase.storage
+      .from("faqs")
+      .createSignedUrl(`${concern}.pdf`, 60 * 60)
+  
+    if (error) {
+      console.error("Error fetching FAQ:", error.message)
+      toast.error("No FAQ available for this concern.")
+      return
+    }
+  
+    // Open in new popup window
+    window.open(data.signedUrl, "_blank", "width=800,height=600")
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -170,6 +199,7 @@ const InquiryForm = () => {
   };
 
   const nextStep = (e: React.MouseEvent<HTMLButtonElement>) => {
+    setOpenedFaq(false)
     if (e) e.preventDefault();
     if (currentStep < 2) {
       setCurrentStep(currentStep + 1);
@@ -283,17 +313,17 @@ const InquiryForm = () => {
                               setConcernValue(currentValue === concernValue ? "" : currentValue,);
                               setFormData({...formData, concern: currentValue});
                               setOpenConcerns(false);
-                              toast(`View FAQs for ${currentValue} concerns`, {
-                                description: "Swipe to dismiss",
-                                action: {
-                                  label: "View",
-                                  onClick: (e) => {
-                                    e.preventDefault();
-                                    console.log("open FAQs");
-                                  },
-                                },
-                                duration: Number.POSITIVE_INFINITY,
-                              });
+                              // toast(`View FAQs for ${currentValue} concerns`, {
+                              //   description: "Swipe to dismiss",
+                              //   action: {
+                              //     label: "View",
+                              //     onClick: (e) => {
+                              //       // e.preventDefault();
+                              //       openFaq(concern.concern_title)
+                              //     },
+                              //   },
+                              //   duration: Number.POSITIVE_INFINITY,
+                              // });
                             }}
                           >
                             {concern.concern_title}
@@ -305,7 +335,59 @@ const InquiryForm = () => {
                 </PopoverContent>
               </Popover>
             </div>
-
+          </div>
+        </div>
+      </CardContent>
+    </>
+    ,
+    <>
+      <CardHeader className="mt-2">
+        <CardTitle className="text-3xl font-bold font-main justify-self-center">
+          INQUIRY FORM
+        </CardTitle>
+        <CardDescription className="justify-self-center italic">
+          All fields are required
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Card className="bg-primary/5 w-5/6 justify-self-center">
+          <CardContent className="grid grid-rows-4 text-xs gap-1">
+            <div className="grid grid-cols-3">
+              <div className="col-span-1">
+                <p className="font-bold">Full Name:</p>
+              </div>
+              <div className="col-span-2">
+                <p>{formData.name}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-3">
+              <div className="col-span-1">
+                <p className="font-bold">UST Email Address:</p>
+              </div>
+              <div className="col-span-2">
+                <p>{formData.email}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-3">
+              <div className="col-span-1">
+                <p className="font-bold">Role:</p>
+              </div>
+              <div className="col-span-2">
+                <p>{formData.role}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-3">
+              <div className="col-span-1">
+                <p className="font-bold">Affiliation:</p>
+              </div>
+              <div className="col-span-2">
+                <p>{formData.affiliation}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <div className="mt-5">
+          <div className="grid grid-rows-* gap-5 w-5/6 mx-auto my-3">
             <div>
               <Label htmlFor="subconcern" className="mb-1">Specific Concern</Label>
               <Popover open={openSubconcerns} onOpenChange={setOpenSubconcerns}>
@@ -379,7 +461,7 @@ const InquiryForm = () => {
         </div>
       </CardContent>
 
-      <Toaster />
+      {/* <Toaster /> */}
     </>,
 
     <>
@@ -461,7 +543,7 @@ const InquiryForm = () => {
       <div className="w-full my-auto font-sub">
         <div className="justify-self-center grid grid-cols-8 w-1/2 mb-5">
           <Progress
-            value={currentStep === 0 ? 33 : currentStep === 1 ? 66 : 100}
+            value={((currentStep+1)/sections.length)*100}
             className="col-span-7 my-auto"
           />
           <p className="content-center text-center col-span-1">
@@ -498,22 +580,38 @@ const InquiryForm = () => {
                 )}
 
                 {currentStep < sections.length - 1 ? (
-                  currentStep === 1 ? (
-                    <Button
-                      className="col-start-5 cursor-pointer"
-                      type="submit"
-                    >
+                  currentStep === 2 ? (
+                    <Button className="col-start-5 cursor-pointer" type="submit">
                       SUBMIT
                     </Button>
                   ) : (
-                    <Button
-                      className="col-start-5 cursor-pointer"
-                      type="button"
-                      onClick={nextStep}
-                      disabled={!isFormComplete}
-                    >
-                      NEXT
-                    </Button>
+                    currentStep === 1 ? (
+                      <Button className="col-start-5 cursor-pointer" type="button" onClick={nextStep} disabled={!isSecondSectionComplete}>
+                        NEXT
+                      </Button>
+                    ) : (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button className="col-start-5 cursor-pointer" type="button" disabled={!isFirstSectionComplete}>
+                            NEXT
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>FAQs for {concernValue} </AlertDialogTitle>
+                            <AlertDialogDescription>Kindly read the FAQs for the chosen concern first before proceeding.</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="invert"><Link href="/inquirer">Inquiry Addressed</Link></AlertDialogCancel>
+                            {!openedFaq ? 
+                              <AlertDialogAction className="cursor-pointer" onClick={e => {e.preventDefault(); openFaq(concernValue); setTimeout(()=>setOpenedFaq(true),2000)}}>View FAQs</AlertDialogAction>
+                              :
+                              <AlertDialogAction className="cursor-pointer" onClick={nextStep}>Proceed</AlertDialogAction>
+                            }
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )
                   )
                 ) : (
                   <div className="col-start-5">
