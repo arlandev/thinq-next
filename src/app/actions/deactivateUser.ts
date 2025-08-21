@@ -35,3 +35,16 @@ export async function activateUser(userId: number) {
         return { success: false, message: "Failed to activate user" };
     }
 }
+
+export async function batchDeactivateUsers(userIds: number[]) {
+    try {
+        const users = await prisma.user.updateMany({
+            where: { id: { in: userIds } },
+            data: { user_status: "INACTIVE" }
+        })
+        return { success: true, message: "Users deactivated successfully" };
+    } catch (error) {
+        console.error("Error deactivating users:", error);
+        return { success: false, message: "Failed to deactivate users" };
+    }
+}

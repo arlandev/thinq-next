@@ -15,6 +15,9 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { deactivateUser, activateUser } from "@/app/actions/deactivateUser";
 
+import { Loader2 } from "lucide-react";
+import { useState } from "react";
+
 interface deactivateProps {
     disable: boolean,
     userId: number,
@@ -25,7 +28,10 @@ interface deactivateProps {
 
 function DeactivateButton( { disable, userId, userName, userEmail, onActivateDeactivate } : deactivateProps ) {
 
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
   const handleDeactivate = async () => {
+    setIsSubmitting(true)
     try {
       const response = await deactivateUser(userId);
       if (response.success) {
@@ -38,9 +44,11 @@ function DeactivateButton( { disable, userId, userName, userEmail, onActivateDea
       console.error("Error deactivating user:", error);
       toast.error("Failed to deactivate user");
     }
+    setIsSubmitting(false)
   }
 
   const handleActivate = async () => {
+    setIsSubmitting(true)
     try {
       const response = await activateUser(userId);
       if (response.success) {
@@ -53,6 +61,7 @@ function DeactivateButton( { disable, userId, userName, userEmail, onActivateDea
       console.error("Error activating user:", error);
       toast.error("Failed to activate user");
     }
+    setIsSubmitting(false)
   }
 
   return (
@@ -104,7 +113,14 @@ function DeactivateButton( { disable, userId, userName, userEmail, onActivateDea
         </div>
         <DialogFooter>
           <Button type="submit" onClick={disable ? handleDeactivate : handleActivate}>
-            {disable ? "Deactivate" : "Activate"}
+            {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {disable ? "Deactivate" : "Activate"}
+                </>
+              ) : (
+                disable ? "Deactivate" : "Activate"
+              )}
           </Button>
         </DialogFooter>
       </DialogContent>
