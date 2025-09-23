@@ -1,16 +1,29 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import WelcomeText from "@/components/common/welcome-text";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import PageLayout from "@/components/common/page-layout";
 import NavBar from "@/components/common/navbar";
+import { getUserSession } from "@/lib/session";
+import { useEffect, useState } from "react";
 
 import Link from "next/link";
 
 export default function AdminHome() {
+  const [userSession, setUserSession] = useState<any>(null);
+
+  useEffect(() => {
+    const session = getUserSession();
+    setUserSession(session);
+  }, []);
   return (
     <PageLayout navbar={<NavBar navBarLink="/admin" navBarLinkName="Home" />}>
       <div className="flex justify-between items-start mb-8">
-        <WelcomeText firstName="Athena" lastName="Patricio" />
+        <WelcomeText 
+          firstName={userSession?.user_firstname || "User"} 
+          lastName={userSession?.user_lastname || ""} 
+        />
         <div className="grid grid-cols-2 gap-3">
           <Link href="/admin/analytics">
             <Button className="flex items-center gap-2">

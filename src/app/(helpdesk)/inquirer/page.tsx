@@ -1,17 +1,30 @@
+"use client";
+
 import type { JSX } from "react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 import NavBar from "@/components/common/navbar";
 import PageLayout from "@/components/common/page-layout";
 import WelcomeText from "@/components/common/welcome-text";
+import { getUserSession } from "@/lib/session";
 
 // shadcn
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 
 function InquirerHome() {
+  const [userSession, setUserSession] = useState<any>(null);
+
+  useEffect(() => {
+    const session = getUserSession();
+    setUserSession(session);
+  }, []);
   return (
     <PageLayout navbar={<NavBar navBarLink="/inbox" navBarLinkName="Inbox" />}>
-      <WelcomeText firstName="Athena" lastName="Patricio"></WelcomeText>
+      <WelcomeText 
+        firstName={userSession?.user_firstname || "User"} 
+        lastName={userSession?.user_lastname || ""} 
+      />
 
       <div className="grid grid-cols-5 gap-7 h-[60vh] content-center">
         <div className="col-span-1 col-start-2 justify-self-center w-full">

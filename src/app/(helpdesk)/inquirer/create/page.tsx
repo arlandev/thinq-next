@@ -51,6 +51,7 @@ import {
 import { submitForm } from "@/app/actions/submitForm";
 import { readConcerns } from "@/app/actions/readConcerns";
 import { readSubconcerns } from "@/app/actions/readSubconcerns";
+import { getUserSession, type UserSession } from "@/lib/session";
 
 interface Concern {
   concern_id: number;
@@ -70,8 +71,9 @@ interface Subconcern {
 }
 
 const InquiryForm = () => {
-
-  const userType = 'STUDENT' //temporary
+  // Get user session data
+  const [userSession, setUserSession] = useState<UserSession | null>(null);
+  const [userType, setUserType] = useState<string>('STUDENT'); // Default fallback
 
   // TODO: add file upload
   const [currentStep, setCurrentStep] = useState(0);
@@ -92,16 +94,49 @@ const InquiryForm = () => {
   const [fileArray, setFileArray] = useState<File[]>([]);
 
   const [formData, setFormData] = useState({
-    name: "testname",
-    email: "testemail",
-    role: "testrole",
-    affiliation: "testaffiliation",
+    name: "",
+    email: "",
+    role: "",
+    affiliation: "",
     concern: "",
     subconcern: "",
     details: "",
   });
 
   const [openedFaq, setOpenedFaq] = useState(false);
+
+  // Load user session data on component mount
+  useEffect(() => {
+    const session = getUserSession();
+    if (session) {
+      // Check if user is an inquirer
+      if (session.user_role !== 'INQUIRER') {
+        toast.error("Access denied. Only inquirers can create tickets.");
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1000);
+        return;
+      }
+      
+      setUserSession(session);
+      setUserType(session.user_type);
+      setFormData({
+        name: `${session.user_firstname} ${session.user_lastname}`,
+        email: session.user_email,
+        role: session.user_role,
+        affiliation: session.user_affiliation,
+        concern: "",
+        subconcern: "",
+        details: "",
+      });
+    } else {
+      // Redirect to login if no session
+      toast.error("Please log in to access this page");
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1000);
+    }
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -216,7 +251,10 @@ const InquiryForm = () => {
 
     // TODO: add file upload
     try {
-      const result = await submitForm(formData);
+      const result = await submitForm({
+        ...formData,
+        userId: userSession?.id || 0
+      });
       // console.log("Submit result:", result);
 
       if (result) {

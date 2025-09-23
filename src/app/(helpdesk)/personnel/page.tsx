@@ -20,6 +20,7 @@ import PersonnelInquiryDialog from "@/components/common/personnel-inquiry-dialog
 import { Button } from "@/components/ui/button";
 import { readTickets } from "@/app/actions/readTickets";
 import { toast } from "sonner";
+import { getUserSession } from "@/lib/session";
 
 interface Ticket {
   ticket_id: number;
@@ -54,6 +55,7 @@ function PersonnelHomePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [pendingCount, setPendingCount] = useState(0)
   const [statusFilter, setStatusFilter] = useState<string>("ALL")
+  const [userSession, setUserSession] = useState<any>(null)
 
   const userId = 7;
 
@@ -71,6 +73,11 @@ function PersonnelHomePage() {
       setIsLoading(false)
     }
   }
+
+  useEffect(() => {
+    const session = getUserSession();
+    setUserSession(session);
+  }, []);
 
   useEffect( () => {
     let isMounted = true;
@@ -112,7 +119,10 @@ function PersonnelHomePage() {
   return (
     <PageLayout navbar={<NavBar navBarLink="/inbox" navBarLinkName="Inbox" />}>
       {/* Welcome Section */}
-      <WelcomeText firstName="Test" lastName="Test" />
+      <WelcomeText 
+        firstName={userSession?.user_firstname || "User"} 
+        lastName={userSession?.user_lastname || ""} 
+      />
 
       {/* Respondent Desk Title */}
       <div className="text-center text-3xl font-bold mb-10">

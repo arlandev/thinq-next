@@ -13,14 +13,28 @@ interface FormDataObject {
   concern: string;
   subconcern: string;
   details: string;
+  userId: number;
 }
 
 export const submitForm = async (formData: FormDataObject) => {
-    const { concern, details, email, role, subconcern } = formData;
+    const { concern, details, email, role, subconcern, userId } = formData;
 
-    console.log(concern, details, email, role, subconcern);
-    const userId = 3;
-    const concernId = 1;
+    console.log(concern, details, email, role, subconcern, userId);
+
+    // Resolve concern_id from concern title to satisfy FK constraint
+    const concernRecord = await prisma.concern.findFirst({
+        where: {
+            concern_title: {
+                equals: concern,
+                mode: 'insensitive',
+            },
+        },
+        select: { concern_id: true },
+    });
+
+    if (!concernRecord) {
+        throw new Error(`Concern not found for title: ${concern}`);
+    }
 
     // Get existing reference numbers to ensure uniqueness
     const existingTickets = await prisma.ticket.findMany({
@@ -38,7 +52,7 @@ export const submitForm = async (formData: FormDataObject) => {
         data: {
             reference_number: referenceNumber,
             inquirer_id: userId,
-            concern_id: concernId,
+            concern_id: concernRecord.concern_id,
             ticket_concern: concern,
             ticket_details: details,
             ticket_subconcern: subconcern,

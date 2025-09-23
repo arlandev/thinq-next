@@ -1,8 +1,10 @@
-import UserList from "@/components/common/list-users";
+// import UserList from "@/components/common/list-users";
+import UserListWithPagination from "@/components/common/list-users-with-pagination";
 
 function InquirerAccountsPage() {
   return (
-    <UserList user_role="INQUIRER"/>
+    <UserListWithPagination user_role="INQUIRER"/>
+    // <UserList user_role="INQUIRER"/>
   )
 }
 

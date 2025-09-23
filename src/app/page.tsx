@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { readUser } from "./actions/readUser";
 import { useState } from "react";
+import { setUserSession } from "@/lib/session";
 
 export default function Home() {
   const [username, setUsername] = useState("");
@@ -18,6 +19,17 @@ export default function Home() {
     const user = await readUser(username, password);
 
     if (user) {
+      // Store user session data
+      setUserSession({
+        id: user.id,
+        user_email: user.user_email,
+        user_firstname: user.user_firstname,
+        user_lastname: user.user_lastname,
+        user_role: user.user_role,
+        user_type: user.user_type,
+        user_affiliation: user.user_affiliation,
+      });
+
       // check user role, then push route to appropriate page depending on role
       const userRole = user.user_role.toLowerCase();
       console.log(userRole);

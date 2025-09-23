@@ -20,37 +20,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
 import BatchDeactivateDialog from "@/components/common/batch-deactivate-dialog";
 import DeactivateButton from "./deactivate-button";
 import EditDialog from "./edit-dialog";
 
 import { readUsers } from "@/app/actions/adminReadUsers";
-
-
-// sample users for testing
-const usersSample = [
-  {
-    id: 1,
-    email: "john.doe@ust.edu.ph",
-    role: "Student",
-    isActive: true,
-    hasActiveTickets: true,
-  },
-  {
-    id: 2,
-    email: "jane.smith@ust.edu.ph",
-    role: "Teacher",
-    isActive: true,
-    hasActiveTickets: false,
-  },
-  {
-    id: 3,
-    email: "john.legend@ust.edu.ph",
-    role: "Staff",
-    isActive: false,
-    hasActiveTickets: false,
-  },
-];
+import { getUserSession } from "@/lib/session";
 
 interface User {
   id: number;
@@ -73,6 +56,15 @@ export default function UserList({user_role}:UserListProps) {
 
   const [completeUsers, setCompleteUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [paginationNumbers, setPaginationNumbers] = useState<number>(0);
+  const [userSession, setUserSession] = useState<any>(null);
+
+  useEffect(() => {
+    const session = getUserSession();
+    setUserSession(session);
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -104,6 +96,28 @@ export default function UserList({user_role}:UserListProps) {
     };
   }, []);
 
+  useEffect( () => {
+    const filteredUsers = completeUsers.filter( ( user: User)  => {
+      if ( user.user_role !== user_role ) return false;
+
+      // If no search query, return all users
+      if ( !searchQuery ) return true;
+
+      const query = searchQuery.toLowerCase();
+      return (
+        user.id.toString().includes(query) ||
+        user.user_email.toLowerCase().includes(query) ||
+        user.user_firstname.toLowerCase().includes(query) ||
+        user.user_lastname.toLowerCase().includes(query) ||
+        user.user_type.toLowerCase().includes(query) ||
+        user.user_affiliation.toLowerCase().includes(query) ||
+        user.user_status.toLowerCase().includes(query)
+      );
+    } )
+
+    setFilteredUsers(filteredUsers);
+  }, [completeUsers, searchQuery, user_role]);
+
   const handleActivateDeactivate = async () => {
     let isMounted = true;
     
@@ -133,7 +147,10 @@ export default function UserList({user_role}:UserListProps) {
   return (
     <PageLayout navbar={<NavBar navBarLink="/admin" navBarLinkName="Home" />}>
       <div className="flex justify-between items-start mb-8">
-        <WelcomeText firstName="First" lastName="Last" />
+        <WelcomeText 
+          firstName={userSession?.user_firstname || "User"} 
+          lastName={userSession?.user_lastname || ""} 
+        />
         <Button className="flex items-center gap-2">
           Dashboard
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
@@ -143,6 +160,21 @@ export default function UserList({user_role}:UserListProps) {
       </div>
 
       <AccountsPageTitle userType={user_role}/>
+
+      {/* Search Command Component */}
+      <div className="mb-6 w-1/4 flex flex-row gap-2">
+        <Command className="rounded-lg border shadow-md">
+          <CommandInput 
+            placeholder="Search users" 
+            value={searchQuery}
+            onValueChange={setSearchQuery}
+          />
+        </Command>
+        <Button className="rounded-lg border shadow-md" 
+          onClick={() => (console.log("searchQuery: ", searchQuery))}>
+            Search
+        </Button>
+      </div>
 
       <div className="flex-grow flex flex-col">
         {isLoading ? (

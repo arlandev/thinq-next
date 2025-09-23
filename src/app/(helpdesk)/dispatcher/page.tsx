@@ -13,6 +13,7 @@ import { TableSkeleton } from "@/components/common/table-skeleton";
 import { readTickets } from "@/app/actions/readTickets";
 import { toast } from "sonner";
 import { Card,CardHeader,CardDescription,CardTitle,CardFooter } from "@/components/ui/card";
+import { getUserSession } from "@/lib/session";
 
 interface Ticket {
     ticket_id: number;
@@ -58,7 +59,13 @@ function DispatcherHome() {
   const [selected, setSelected] = useState<string>('');
   const [ isLoading , setIsLoading ] = useState(true);
   const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [userSession, setUserSession] = useState<any>(null);
   
+  useEffect(() => {
+    const session = getUserSession();
+    setUserSession(session);
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
     
@@ -124,7 +131,10 @@ function DispatcherHome() {
   return (
     <PageLayout navbar={<NavBar />}>
       {/* Welcome Section */}
-      <WelcomeText firstName="Test" lastName="Test" />
+      <WelcomeText 
+        firstName={userSession?.user_firstname || "User"} 
+        lastName={userSession?.user_lastname || ""} 
+      />
       {/* Tabs Container */}
       <Tabs defaultValue="employees" className="flex-grow flex flex-col" onValueChange={handleTabChange}>
         <div className="p-8 w-full">
