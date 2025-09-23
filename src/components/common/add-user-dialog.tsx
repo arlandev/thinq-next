@@ -393,6 +393,9 @@ export default function AddUserDialog({
                         handleInputChange(form.id, "affiliation", value)
                       }
                       disabled={!affiliationListLoaded}
+                      // Ensure dropdown renders above dialog and avoids clipping
+                      // @ts-expect-error shadcn Select supports position
+                      position="popper"
                     >
                       <SelectTrigger className="col-span-3">
                         <SelectValue
@@ -403,7 +406,7 @@ export default function AddUserDialog({
                           }
                         />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="z-[70]">
                         {affiliationListLoaded &&
                           affiliationList.map((affiliation) => (
                             <SelectItem
@@ -427,11 +430,14 @@ export default function AddUserDialog({
                         onValueChange={(value) =>
                           handleInputChange(form.id, "type", value)
                         }
+                        // Ensure dropdown renders above dialog and avoids clipping
+                        // @ts-expect-error shadcn Select supports position
+                        position="popper"
                       >
                         <SelectTrigger className="col-span-3">
                           <SelectValue placeholder="Select type" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="z-[70]">
                           <SelectItem value="Student">Student</SelectItem>
                           <SelectItem value="Employee">Employee</SelectItem>
                         </SelectContent>
