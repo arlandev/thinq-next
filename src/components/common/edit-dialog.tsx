@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { updateUser } from "@/app/actions/updateUser";
 
 interface User {
     id: number,
@@ -43,25 +44,20 @@ function EditDialog( { user, onSave } : EditDialogProps ) {
     }));
   };
 
-  const handleSave = () => {
-    // TODO: Implement saving of edit
-
-    // console.log(user.name);
-    // console.log(user.email);
-    // console.log(formData.name);
-    // console.log(formData.email);
-
+  const handleSave = async () => {
     const hasChanges =
       formData.name.trim() !== user.name.trim() ||
       formData.email.trim() !== user.email.trim();
 
-    if (hasChanges && onSave) {
-      onSave({ ...user, ...formData });
-      console.log("Changes saved:", formData);
-    } else {
-      console.log("No changes detected.");
+    if (!hasChanges) {
+      setOpen(false);
+      return;
     }
 
+    const res = await updateUser({ id: user.id, name: formData.name, email: formData.email });
+    if (res.success) {
+      onSave?.({ ...user, ...formData });
+    }
     setOpen(false);
   };
 

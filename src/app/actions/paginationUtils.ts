@@ -1,8 +1,7 @@
 'use server';
 
-import { PrismaClient, UserRole } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { UserRole } from "@prisma/client";
+import { db } from "@/server/db";
 
 export interface PaginationInfo {
     totalItems: number;
@@ -65,32 +64,28 @@ export async function getPaginationForUsers(params: PaginationParams): Promise<{
         }
         
         if (searchQuery) {
+            // Only include string fields in contains filters. Enum fields (e.g., user_type) cannot use contains
             whereClause.OR = [
                 { user_email: { contains: searchQuery, mode: 'insensitive' } },
                 { user_firstname: { contains: searchQuery, mode: 'insensitive' } },
                 { user_lastname: { contains: searchQuery, mode: 'insensitive' } },
                 { user_affiliation: { contains: searchQuery, mode: 'insensitive' } },
-                { user_type: { contains: searchQuery, mode: 'insensitive' } },
             ];
         }
 
-        // Get total count for pagination
-        const totalUsers = await prisma.user.count({
-            where: whereClause
-        });
+        // Run count and page query in a single transaction to avoid extra roundtrips
+        const [totalUsers, users] = await db.$transaction([
+            db.user.count({ where: whereClause }),
+            db.user.findMany({
+                where: whereClause,
+                skip: Math.max(0, (Math.max(1, page) - 1) * pageSize),
+                take: pageSize,
+                orderBy: { created_at: 'desc' },
+            })
+        ]);
 
         // Calculate pagination info
         const pagination = await calculatePagination(totalUsers, page, pageSize);
-
-        // Get users with pagination
-        const users = await prisma.user.findMany({
-            where: whereClause,
-            skip: (pagination.currentPage - 1) * pageSize,
-            take: pageSize,
-            orderBy: {
-                created_at: 'desc'
-            }
-        });
 
         return {
             users,
@@ -135,34 +130,26 @@ export async function getPaginationForTickets(params: {
             whereClause.inquirer_id = inquirerId;
         }
 
-        // Get total count for pagination
-        const totalTickets = await prisma.ticket.count({
-            where: whereClause
-        });
+        // Run count and page query in a single transaction to avoid extra roundtrips
+        const [totalTickets, tickets] = await db.$transaction([
+            db.ticket.count({ where: whereClause }),
+            db.ticket.findMany({
+                where: whereClause,
+                skip: Math.max(0, (Math.max(1, page) - 1) * pageSize),
+                take: pageSize,
+                include: {
+                    inquirer: true,
+                    assignee: true,
+                    concern: true,
+                    closedby: true
+                },
+                orderBy: { ticket_submitteddate: 'desc' }
+            })
+        ]);
 
-        // Calculate pagination info
         const pagination = await calculatePagination(totalTickets, page, pageSize);
 
-        // Get tickets with pagination
-        const tickets = await prisma.ticket.findMany({
-            where: whereClause,
-            skip: (pagination.currentPage - 1) * pageSize,
-            take: pageSize,
-            include: {
-                inquirer: true,
-                assignee: true,
-                concern: true,
-                closedby: true
-            },
-            orderBy: {
-                ticket_submitteddate: 'desc'
-            }
-        });
-
-        return {
-            tickets,
-            pagination
-        };
+        return { tickets, pagination };
     } catch (error) {
         console.error('Error fetching tickets with pagination:', error);
         throw new Error('Failed to fetch tickets');

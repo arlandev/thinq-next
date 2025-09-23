@@ -128,6 +128,11 @@ export default function UserListWithPagination({ user_role }: UserListWithPagina
     fetchUsers(pagination.currentPage, searchQuery);
   };
 
+  const handleUserUpdated = () => {
+    fetchUsers(pagination.currentPage, searchQuery);
+    toast.success("Account has been updated");
+  };
+
   return (
     <PageLayout navbar={<NavBar navBarLink="/admin" navBarLinkName="Home" />}>
       <div className="flex justify-between items-start mb-8">
@@ -189,7 +194,7 @@ export default function UserListWithPagination({ user_role }: UserListWithPagina
                             id: user.id,
                             name: `${user.user_firstname} ${user.user_lastname}`,
                             email: user.user_email,
-                          }} />
+                          }} onSave={handleUserUpdated} />
                         </TableCell>
                         <TableCell>{user.id}</TableCell>
                         <TableCell>{user.user_email}</TableCell>
