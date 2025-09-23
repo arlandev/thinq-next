@@ -147,6 +147,7 @@ export default function TicketList({user_type, filter_status, tickets, onAssignm
                         <TableCell className="text-right">
                           <InquiryDetailsDialog
                             inquiry={{
+                              ticketId: ticket.ticket_id,
                               referenceNumber: ticket.reference_number,
                               inquirerEmail: ticket.inquirer?.user_email ?? '',
                               affiliation: ticket.inquirer?.user_affiliation ?? '',

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { clearUserSession, getUserSession } from "@/lib/session";
+import { useEffect, useState } from "react";
 
 interface NavbarProps {
   navBarLink?: string;
@@ -14,7 +15,14 @@ export default function NavBar({ navBarLink, navBarLinkName }: NavbarProps) {
     window.location.href = '/';
   };
 
-  const userSession = getUserSession();
+  const [userSession, setUserSession] = useState<any>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    const session = getUserSession();
+    setUserSession(session);
+  }, []);
 
   return (
     <nav className="flex flex-row bg-gray-100 py-4 drop-shadow-md">
@@ -28,11 +36,14 @@ export default function NavBar({ navBarLink, navBarLinkName }: NavbarProps) {
           </Link>
         </div>
         <div className="font-sub flex flex-row items-center space-x-6">
-          {userSession && (
-            <span className="text-sm text-gray-600">
-              Welcome, {userSession.user_firstname} {userSession.user_lastname}
-            </span>
-          )}
+          {/* Keep a stable span node to avoid hydration mismatches; fill content after mount */}
+          <span className="text-sm text-gray-600">
+            {isMounted && userSession ? (
+              <>Welcome, {userSession.user_firstname} {userSession.user_lastname}</>
+            ) : (
+              ""
+            )}
+          </span>
           {navBarLink && navBarLinkName && (
             <Link
               href={navBarLink}

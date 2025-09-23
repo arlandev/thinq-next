@@ -92,43 +92,43 @@ export default function PersonnelInquiryDialog({ inquiry = defaultInquiry, trigg
           {/* Row 1 - Ticket Number */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="referenceNumber" className="text-right font-medium">Ticket Number</Label>
-            <Input id="referenceNumber" value={inquiry.referenceNumber} className="col-span-3" disabled />
+            <Input id="referenceNumber" value={inquiry.referenceNumber || ""} className="col-span-3" disabled />
           </div>
 
           {/* Row 2 - Submission Date */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="submittedDate" className="text-right font-medium">Date Submitted</Label>
-            <Input id="submittedDate" value={inquiry.submittedDate} className="col-span-3" disabled />
+            <Input id="submittedDate" value={inquiry.submittedDate || ""} className="col-span-3" disabled />
           </div>
 
           {/* Row 3 - Status */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="status" className="text-right font-medium">Status</Label>
-            <Input id="status" value={inquiry.status} className="col-span-3" disabled />
+            <Input id="status" value={inquiry.status || ""} className="col-span-3" disabled />
           </div>
 
           {/* Row 4 - Inquirer Name */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="inquirerName" className="text-right font-medium">Inquirer Name</Label>
-            <Input id="inquirerName" value={inquiry.inquirerName} className="col-span-3" disabled />
+            <Input id="inquirerName" value={inquiry.inquirerName || ""} className="col-span-3" disabled />
           </div>
 
           {/* Row 5 - Inquirer Email */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="inquirerEmail" className="text-right font-medium">Inquirer Email</Label>
-            <Input id="inquirerEmail" value={inquiry.inquirerEmail} className="col-span-3" disabled />
+            <Input id="inquirerEmail" value={inquiry.inquirerEmail || ""} className="col-span-3" disabled />
           </div>
 
           {/* Row 6 - Affiliation */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="affiliation" className="text-right font-medium">Affiliation</Label>
-            <Input id="affiliation" value={inquiry.affiliation} className="col-span-3" disabled />
+            <Input id="affiliation" value={inquiry.affiliation || ""} className="col-span-3" disabled />
           </div>
 
           {/* Row 7 - Concern */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="concern" className="text-right font-medium">Concern</Label>
-            <Input id="concern" value={inquiry.concern} className="col-span-3" disabled />
+            <Input id="concern" value={inquiry.concern || ""} className="col-span-3" disabled />
           </div>
 
           {/* Row 8 - Specific Concern */}
@@ -137,7 +137,7 @@ export default function PersonnelInquiryDialog({ inquiry = defaultInquiry, trigg
             <div className="col-span-3">
               <Textarea
                 id="specificConcern"
-                value={inquiry.specificConcern}
+                value={inquiry.specificConcern || ""}
                 className="min-h-[100px] resize-none"
                 disabled
               />
@@ -150,7 +150,7 @@ export default function PersonnelInquiryDialog({ inquiry = defaultInquiry, trigg
             <div className="col-span-3">
               <Textarea
                 id="concernDetails"
-                value={inquiry.concernDetails}
+                value={inquiry.concernDetails || ""}
                 className="min-h-[150px] bg-muted resize-none"
                 disabled
               />

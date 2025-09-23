@@ -15,6 +15,7 @@ import { readUsers } from "@/app/actions/adminReadUsers"
 
 // Define the Inquiry type
 interface Inquiry {
+  ticketId: number
   referenceNumber: string
   inquirerEmail: string
   affiliation: string
@@ -31,6 +32,7 @@ interface InquiryDetailsDialogProps {
 }
 
 const defaultInquiry: Inquiry = {
+  ticketId: 0,
   referenceNumber: "",
   inquirerEmail: "",
   affiliation: "",
@@ -58,28 +60,44 @@ export default function InquiryDetailsDialog({ inquiry = defaultInquiry, trigger
   const [selectedAssignee, setSelectedAssignee] = useState<string>(inquiry.assignedTo ?? "")
   const [personnelsLoaded, setPersonnelsLoaded] = useState(false)
   const [personnels, setPersonnels] = useState<Personnel[]>([])
+  const [isClosing, setIsClosing] = useState(false)
+
 
   const handleSave = async (assigneeUserId: number, inquiryId: number ) => {
-    const result = await assignPersonnel(assigneeUserId, inquiryId)
-    if (result.success) {
-      toast.success(result.message)
-      // Trigger data refresh after successful assignment
-      onAssignmentComplete?.()
-    } else {
-      toast.error(result.message)
+    try {
+      const result = await assignPersonnel(assigneeUserId, inquiryId)
+      if (result.success) {
+        toast.success(result.message)
+        // Trigger data refresh after successful assignment
+        onAssignmentComplete?.()
+      } else {
+        toast.error(result.message)
+      }
+      // Reset states after save
+      setSelectedAssignee(inquiry.assignedTo ?? "")
+      setPersonnelsLoaded(false)
+      setPersonnels([])
+      setOpen(false)
+    } catch (error) {
+      console.error("Error in handleSave:", error)
+      toast.error("Failed to assign personnel")
     }
-    setOpen(false)
   }
 
   const fetchPersonnels = async () => {
-    if (personnelsLoaded) return
+    if (personnelsLoaded) {
+      return
+    }
 
     setIsLoadingPersonnels(true)
     try {
       const personnelUsers = await readUsers()
-      setPersonnels(personnelUsers as unknown as Personnel[])
+      const personnelList = personnelUsers as unknown as Personnel[]
+      const filteredPersonnels = personnelList.filter(user => user.user_role === 'PERSONNEL')
+      
+      setPersonnels(personnelList)
       setPersonnelsLoaded(true)
-      toast.success("Available Personnels loaded successfully")
+      toast.success(`Loaded ${filteredPersonnels.length} available personnels`)
     } catch (error) {
       console.error("Error fetching personnels:", error)
       toast.error("Failed to load personnels")
@@ -89,20 +107,56 @@ export default function InquiryDetailsDialog({ inquiry = defaultInquiry, trigger
   }
 
   const handleCancel = () => {
-    // Reset any changes
-    setSelectedAssignee(inquiry.assignedTo ?? "")
-    setOpen(false)
+    try {
+      // Reset any changes
+      setSelectedAssignee(inquiry.assignedTo ?? "")
+      setPersonnelsLoaded(false)
+      setPersonnels([])
+      setOpen(false)
+    } catch (error) {
+      console.error("Error in handleCancel:", error)
+    }
+  }
+
+  const handleOpenChange = (newOpen: boolean) => {
+    try {
+      if (!newOpen) {
+        setIsClosing(true)
+      }
+      
+      setOpen(newOpen)
+      if (newOpen) {
+        setIsClosing(false)
+        fetchPersonnels()
+      } else {
+        // Reset states when dialog closes - use setTimeout to avoid state updates during render
+        setTimeout(() => {
+          setSelectedAssignee(inquiry.assignedTo ?? "")
+          setPersonnelsLoaded(false)
+          setPersonnels([])
+          setIsClosing(false)
+        }, 100) // Increased timeout to ensure Select component has time to close
+      }
+    } catch (error) {
+      console.error("Error in handleOpenChange:", error)
+    }
   }
 
   return (
-    <Dialog open={open} onOpenChange={ (newOpen) => {
-      setOpen(newOpen)
-      if (newOpen) {
-        fetchPersonnels()
-      }
-    }}>
-      <DialogTrigger asChild>{trigger ?? <Button variant="outline">View Details</Button>}</DialogTrigger>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
+        {trigger ?? <Button variant="outline">View Details</Button>}
+      </DialogTrigger>
+      <DialogContent 
+        className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto"
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            e.preventDefault()
+            e.stopPropagation()
+            handleOpenChange(false)
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Inquiry Details</DialogTitle>
           <DialogDescription>View the complete information for this inquiry.</DialogDescription>
@@ -111,25 +165,25 @@ export default function InquiryDetailsDialog({ inquiry = defaultInquiry, trigger
           {/* Row 1 */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="referenceNumber" className="text-right font-medium">Reference Number</Label>
-            <Input id="referenceNumber" value={inquiry.referenceNumber} className="col-span-3" disabled />
+            <Input id="referenceNumber" value={inquiry.referenceNumber || ""} className="col-span-3" disabled />
           </div>
 
           {/* Row 2 */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="inquirerEmail" className="text-right font-medium">Inquirer</Label>
-            <Input id="inquirerEmail" value={inquiry.inquirerEmail} className="col-span-3" disabled />
+            <Input id="inquirerEmail" value={inquiry.inquirerEmail || ""} className="col-span-3" disabled />
           </div>
 
           {/* Row 3 */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="affiliation" className="text-right font-medium">Affiliation</Label>
-            <Input id="affiliation" value={inquiry.affiliation} className="col-span-3" disabled />
+            <Input id="affiliation" value={inquiry.affiliation || ""} className="col-span-3" disabled />
           </div>
 
           {/* Row 4 */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="concern" className="text-right font-medium">Concern</Label>
-            <Input id="concern" value={inquiry.concern} className="col-span-3" disabled />
+            <Input id="concern" value={inquiry.concern || ""} className="col-span-3" disabled />
           </div>
 
           {/* Row 5 */}
@@ -138,7 +192,7 @@ export default function InquiryDetailsDialog({ inquiry = defaultInquiry, trigger
             <div className="col-span-3">
               <Textarea
                 id="specificConcern"
-                value={inquiry.specificConcern}
+                value={inquiry.specificConcern || ""}
                 className="min-h-[100px] resize-none"
                 disabled
               />
@@ -151,7 +205,7 @@ export default function InquiryDetailsDialog({ inquiry = defaultInquiry, trigger
             <div className="col-span-3">
               <Textarea
                 id="concernDetails"
-                value={inquiry.concernDetails}
+                value={inquiry.concernDetails || ""}
                 className="min-h-[150px] bg-muted resize-none"
                 disabled
               />
@@ -164,26 +218,51 @@ export default function InquiryDetailsDialog({ inquiry = defaultInquiry, trigger
               Assign To
             </Label>
             <div className="col-span-3">
-              {!inquiry.assignedTo ? (
-                <Select value={selectedAssignee} onValueChange={setSelectedAssignee}>
+              {!inquiry.assignedTo && !isClosing ? (
+                <Select 
+                  value={selectedAssignee} 
+                  onValueChange={(value) => {
+                    if (open && !isClosing) { // Only allow changes when dialog is open and not closing
+                      setSelectedAssignee(value)
+                    }
+                  }}
+                  disabled={!open || isClosing || isLoadingPersonnels || personnels.filter(user => user.user_role==='PERSONNEL').length === 0}
+                  onOpenChange={(isOpen) => {
+                    if ((!open || isClosing) && isOpen) {
+                      return false
+                    }
+                  }}
+                >
                   <SelectTrigger className="w-[220px]">
                     <SelectValue placeholder={isLoadingPersonnels ? "Loading..." : "Assign this inquiry"} />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent onEscapeKeyDown={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                  }}>
                     <SelectGroup>
                       <SelectLabel>Personnel</SelectLabel>
                       {personnels.filter(user => user.user_role==='PERSONNEL').map(personnel => (
-                        <SelectItem key={personnel.id} value={personnel.id.toString()} onClick={() => setSelectedAssignee(personnel.id.toString())}>{personnel.user_firstname} {personnel.user_lastname}</SelectItem>
+                        <SelectItem 
+                          key={personnel.id} 
+                          value={personnel.id.toString()}
+                        >
+                          {personnel.user_firstname} {personnel.user_lastname}
+                        </SelectItem>
                       ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
-              ) : (
+              ) : inquiry.assignedTo ? (
                 <div className="flex items-center justify-between">
                   <div className="font-medium">{inquiry.assignedTo}</div>
                   <Button variant="outline" size="sm" onClick={() => setSelectedAssignee("")}>
                     Reassign
                   </Button>
+                </div>
+              ) : (
+                <div className="w-[220px] h-10 bg-gray-100 rounded-md flex items-center px-3 text-sm text-gray-500">
+                  {isClosing ? "Closing..." : "Assign this inquiry"}
                 </div>
               )}
             </div>
@@ -191,7 +270,7 @@ export default function InquiryDetailsDialog({ inquiry = defaultInquiry, trigger
         </div>
         <DialogFooter className="gap-2">
           <Button variant="outline" type="button" onClick={handleCancel}>Cancel</Button>
-          <Button variant="default" type="button" onClick={() => {handleSave(parseInt(selectedAssignee), parseInt(inquiry.referenceNumber));}} disabled={!selectedAssignee && !inquiry.assignedTo}>
+          <Button variant="default" type="button" onClick={() => {handleSave(parseInt(selectedAssignee), inquiry.ticketId);}} disabled={!selectedAssignee && !inquiry.assignedTo}>
             Save & Close
           </Button>
         </DialogFooter>

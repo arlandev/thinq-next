@@ -57,8 +57,6 @@ function PersonnelHomePage() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL")
   const [userSession, setUserSession] = useState<any>(null)
 
-  const userId = 7;
-
   const fetchTickets = async () => {
     try {
       setIsLoading(true)
@@ -86,10 +84,8 @@ function PersonnelHomePage() {
       try {
         setIsLoading(true)
         const tickets = await readTickets () as unknown as Ticket[]
-        const pendingCount = tickets.filter(ticket => ticket.ticket_status === "NEW" || ticket.ticket_status === "OPEN").length
         if (isMounted) {
           setTickets(tickets)
-          setPendingCount(pendingCount)
           console.log(tickets)
           toast.success("Tickets loaded successfully")
         }
@@ -110,6 +106,21 @@ function PersonnelHomePage() {
     }
   }, [])
 
+  // Recompute pending count whenever tickets or user session changes
+  useEffect(() => {
+    const currentUserId = userSession?.id as number | undefined;
+    if (!currentUserId) {
+      setPendingCount(0);
+      return;
+    }
+
+    const count = tickets.filter(ticket =>
+      (ticket.ticket_status === "NEW" || ticket.ticket_status === "OPEN") &&
+      ticket.assignee_id === currentUserId
+    ).length;
+    setPendingCount(count);
+  }, [tickets, userSession]);
+
   // Filter tickets based on selected status
   const filteredTickets = tickets.filter(ticket => {
     if (statusFilter === "ALL") return true
@@ -117,7 +128,7 @@ function PersonnelHomePage() {
   })
 
   return (
-    <PageLayout navbar={<NavBar navBarLink="/inbox" navBarLinkName="Inbox" />}>
+    <PageLayout navbar={<NavBar navBarLink="/inbox" navBarLinkName="Inbox" />}> 
       {/* Welcome Section */}
       <WelcomeText 
         firstName={userSession?.user_firstname || "User"} 
@@ -200,7 +211,8 @@ function PersonnelHomePage() {
                   </TableHeader>
                   <TableBody className="h-full">
                     { filteredTickets.filter( ticket => {
-                      return ticket.assignee_id === userId
+                      const currentUserId = userSession?.id as number | undefined;
+                      return currentUserId ? ticket.assignee_id === currentUserId : false;
                     }).map ( (ticket) => {
                       return (
                         <TableRow key={ticket.ticket_id}>
