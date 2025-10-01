@@ -204,19 +204,40 @@ const InquiryForm = () => {
   const isSecondSectionComplete = formData.subconcern.trim() !== "" && formData.details.trim() !== "";
 
   async function openFaq(concern: string) {
-    // Generate signed URL valid for 1 hour
-    const { data, error } = await supabase.storage
-      .from("faqs")
-      .createSignedUrl(`${concern}.pdf`, 60 * 60)
-  
-    if (error) {
-      console.error("Error fetching FAQ:", error.message)
-      toast.error("No FAQ available for this concern.")
-      return
+    try {
+      // First check if the file exists
+      const { data: fileList, error: listError } = await supabase.storage
+        .from("faqs")
+        .list("", { search: `${concern}.pdf` })
+
+      if (listError) {
+        console.error("Error checking FAQ existence:", listError.message)
+        toast.error("Unable to check FAQ availability.")
+        return
+      }
+
+      if (!fileList || fileList.length === 0) {
+        toast.error("No FAQ available for this concern.")
+        return
+      }
+
+      // Generate signed URL valid for 1 hour
+      const { data, error } = await supabase.storage
+        .from("faqs")
+        .createSignedUrl(`${concern}.pdf`, 60 * 60)
+    
+      if (error) {
+        console.error("Error fetching FAQ:", error.message)
+        toast.error("No FAQ available for this concern.")
+        return
+      }
+    
+      // Open in new popup window
+      window.open(data.signedUrl, "_blank", "width=800,height=600")
+    } catch (error) {
+      console.error("Unexpected error in openFaq:", error)
+      toast.error("An error occurred while trying to open the FAQ.")
     }
-  
-    // Open in new popup window
-    window.open(data.signedUrl, "_blank", "width=800,height=600")
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

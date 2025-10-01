@@ -8,9 +8,11 @@ import { Button } from "@/components/ui/button";
 import NavBar from "@/components/common/navbar";
 import WelcomeText from "@/components/common/welcome-text";
 import PageLayout from "@/components/common/page-layout";
-import TicketList from "@/components/common/list-tickets";
+import TicketList, { TicketListWithSearch } from "@/components/common/list-tickets";
 import { TableSkeleton } from "@/components/common/table-skeleton";
 import { readTickets } from "@/app/actions/readTickets";
+import { readTicketsPaginated, type TicketPaginationParams } from "@/app/actions/readTicketsPaginated";
+import { getTicketCounts, type TicketCounts } from "@/app/actions/getTicketCounts";
 import { toast } from "sonner";
 import { Card,CardHeader,CardDescription,CardTitle,CardFooter } from "@/components/ui/card";
 import { getUserSession } from "@/lib/session";
@@ -57,74 +59,113 @@ function DispatcherHome() {
 
   const [selectedFilter, setSelectedFilter] = useState<string[]>([])
   const [selected, setSelected] = useState<string>('');
-  const [ isLoading , setIsLoading ] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [userSession, setUserSession] = useState<any>(null);
+  
+  // Server-side pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [paginationInfo, setPaginationInfo] = useState<any>(null);
+  const [ticketCache, setTicketCache] = useState<Map<string, {tickets: Ticket[], pagination: any}>>(new Map());
+  const [totalTickets, setTotalTickets] = useState(0);
+  const [ticketCounts, setTicketCounts] = useState<TicketCounts>({
+    total: 0,
+    new: 0,
+    open: 0,
+    closed: 0,
+    newAndOpen: 0
+  });
+  const [currentUserType, setCurrentUserType] = useState('EMPLOYEE');
   
   useEffect(() => {
     const session = getUserSession();
     setUserSession(session);
   }, []);
 
-  useEffect(() => {
-    let isMounted = true;
+  // Function to generate cache key
+  const getCacheKey = (userType: string, page: number, statusFilters: string[], search: string) => {
+    return `${userType}-${page}-${statusFilters.join(',')}-${search}`;
+  };
+
+  // Function to fetch tickets with caching
+  const fetchTicketsPaginated = async (userType: string, page: number, statusFilters: string[], search: string = '') => {
+    const cacheKey = getCacheKey(userType, page, statusFilters, search);
     
-    const fetchTickets = async () => {
-      try {
-        setIsLoading(true);
-        const ticketsData = await readTickets();
-        console.log(ticketsData);
-        if (isMounted) {
-          setTickets(ticketsData as unknown as Ticket[]);
-          toast.success("Tickets Loaded Successfully");
-        }
-      } catch (error) {
-        console.error("Error fetching tickets:", error);
-        if (isMounted) {
-          toast.error("Failed to Load Tickets");
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+    // Check cache first
+    if (ticketCache.has(cacheKey)) {
+      const cachedData = ticketCache.get(cacheKey)!;
+      setTickets(cachedData.tickets);
+      setPaginationInfo(cachedData.pagination);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      
+      // Fetch both tickets and counts in parallel
+      const [result, counts] = await Promise.all([
+        readTicketsPaginated({
+          page,
+          pageSize: 10,
+          userType,
+          statusFilters,
+          searchQuery: search
+        }),
+        getTicketCounts(userType, statusFilters, search)
+      ]);
+
+      if (result) {
+        setTickets(result.tickets);
+        setPaginationInfo(result.pagination);
+        setTotalTickets(result.pagination.totalItems);
+        setTicketCounts(counts);
+        
+        // Cache the results
+        setTicketCache(prev => new Map(prev.set(cacheKey, {
+          tickets: result.tickets,
+          pagination: result.pagination
+        })));
       }
-    };
+    } catch (error) {
+      console.error("Error fetching tickets:", error);
+      toast.error("Failed to Load Tickets");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    fetchTickets();
+  // Load initial data for both user types
+  useEffect(() => {
+    fetchTicketsPaginated('EMPLOYEE', 1, selectedFilter, searchQuery);
+  }, [selectedFilter, searchQuery]);
 
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // Function to handle tab changes - no longer needs to trigger loading
+  // Function to handle tab changes
   const handleTabChange = (value: string) => {
-    // Tab change no longer triggers data fetching
+    const userType = value === 'employees' ? 'EMPLOYEE' : 'STUDENT';
+    setCurrentUserType(userType);
+    setCurrentPage(1);
+    fetchTicketsPaginated(userType, 1, selectedFilter, searchQuery);
+  };
+
+  // Function to handle page changes
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    fetchTicketsPaginated(currentUserType, page, selectedFilter, searchQuery);
+  };
+
+  // Function to handle search
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1);
+    fetchTicketsPaginated(currentUserType, 1, selectedFilter, query);
   };
 
   const handleAssignmentCompletion = () => {
-    let isMounted = true;
-    const fetchTickets = async () => {
-      try {
-        setIsLoading(true);
-        const ticketsData = await readTickets();
-        if (isMounted) {
-          setTickets(ticketsData as unknown as Ticket[]);
-          toast.success("Tickets Refreshed Successfully");
-        }
-      } catch (error) {
-        console.error("Error fetching tickets:", error);
-        if (isMounted) {
-          toast.error("Failed to Refresh Tickets");
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchTickets();
+    // Clear cache and refetch current page
+    setTicketCache(new Map());
+    fetchTicketsPaginated(currentUserType, currentPage, selectedFilter, searchQuery);
+    toast.success("Tickets Refreshed Successfully");
   }
 
 
@@ -156,19 +197,19 @@ function DispatcherHome() {
                 <div className="font-medium">FILTER BY STATUS</div>
                 <div className="space-y-2 w-3/4">
                   <Card className={selected==='NEWOPEN'?'py-3 gap-0 pointer-events-none opacity-60 invert':'py-3 gap-0 cursor-pointer invert'} onClick={() => {setSelectedFilter(['NEW','OPEN']);setSelected('NEWOPEN')}}>
-                    <CardHeader><CardTitle className="text-5xl text-center">{tickets.filter(ticket => (ticket.ticket_status==='NEW' || ticket.ticket_status==='OPEN') && ticket.inquirer?.user_type==='EMPLOYEE').length}</CardTitle></CardHeader>
+                    <CardHeader><CardTitle className="text-5xl text-center">{ticketCounts.newAndOpen}</CardTitle></CardHeader>
                     <CardFooter className="px-0"><p className="text-sm text-center w-full">NEW & OPEN</p></CardFooter>
                   </Card>
                   <Card className={selected==='NEW'?'py-3 gap-0 pointer-events-none opacity-60 invert':'py-3 gap-0 cursor-pointer invert'} onClick={() => {setSelectedFilter(['NEW']);setSelected('NEW')}}>
-                    <CardHeader><CardTitle className="text-5xl text-center">{tickets.filter(ticket => (ticket.ticket_status==='NEW') && ticket.inquirer?.user_type==='EMPLOYEE').length}</CardTitle></CardHeader>
+                    <CardHeader><CardTitle className="text-5xl text-center">{ticketCounts.new}</CardTitle></CardHeader>
                     <CardFooter className="px-0"><p className="text-sm text-center w-full">NEW</p></CardFooter>
                   </Card>
                   <Card className={selected==='OPEN'?'py-3 gap-0 pointer-events-none opacity-60 invert':'py-3 gap-0 cursor-pointer invert'} onClick={() => {setSelectedFilter(['OPEN']);setSelected('OPEN')}}>
-                    <CardHeader><CardTitle className="text-5xl text-center">{tickets.filter(ticket => (ticket.ticket_status==='OPEN') && ticket.inquirer?.user_type==='EMPLOYEE').length}</CardTitle></CardHeader>
+                    <CardHeader><CardTitle className="text-5xl text-center">{ticketCounts.open}</CardTitle></CardHeader>
                     <CardFooter className="px-0"><p className="text-sm text-center w-full">OPEN</p></CardFooter>
                   </Card>
                   <Card className={selected==='CLOSED'?'py-3 gap-0 pointer-events-none opacity-60 invert':'py-3 gap-0 cursor-pointer invert'} onClick={() => {setSelectedFilter(['CLOSED']);setSelected('CLOSED')}}>
-                    <CardHeader><CardTitle className="text-5xl text-center">{tickets.filter(ticket => (ticket.ticket_status==='CLOSED') && ticket.inquirer?.user_type==='EMPLOYEE').length}</CardTitle></CardHeader>
+                    <CardHeader><CardTitle className="text-5xl text-center">{ticketCounts.closed}</CardTitle></CardHeader>
                     <CardFooter className="px-0"><p className="text-sm text-center w-full">CLOSED</p></CardFooter>
                   </Card>
                   <Button className={selected===''?'pointer-events-none opacity-50 w-full':'w-full bg-blue-500 text-white hover:bg-blue-500 hover:opacity-80'} onClick={() => {setSelectedFilter([]);setSelected('')}}>CLEAR</Button>
@@ -182,23 +223,18 @@ function DispatcherHome() {
                 <TableSkeleton rows={6} />
               ) : (
                 <div className="bg-white rounded-lg shadow-xl flex-grow flex flex-col">
-                  <div className="flex flex-col h-full">
-                    <Table className="h-full">
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-[200px]">Inquiry Date</TableHead>
-                          <TableHead>Ref. No.</TableHead>
-                          <TableHead>Concern</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Assignment</TableHead>
-                          <TableHead className="text-right">Details</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody className="h-full">
-                        <TicketList user_type="EMPLOYEE" filter_status={selectedFilter} tickets={tickets} onAssignmentComplete={handleAssignmentCompletion}/>
-                      </TableBody>
-                    </Table>
-                  </div>
+                  <TicketListWithSearch 
+                    user_type="EMPLOYEE" 
+                    filter_status={selectedFilter} 
+                    tickets={tickets} 
+                    onAssignmentComplete={handleAssignmentCompletion}
+                    showSearchAndPagination={true}
+                    pageSize={10}
+                    paginationInfo={paginationInfo}
+                    onPageChange={handlePageChange}
+                    onSearch={handleSearch}
+                    searchQuery={searchQuery}
+                  />
                 </div>
               )}
             </div>
@@ -215,19 +251,19 @@ function DispatcherHome() {
                 <div className="font-medium">FILTER BY STATUS</div>
                 <div className="space-y-2 w-3/4">
                   <Card className={selected==='NEWOPEN'?'py-3 gap-0 pointer-events-none opacity-60 invert':'py-3 gap-0 cursor-pointer invert'} onClick={() => {setSelectedFilter(['NEW','OPEN']);setSelected('NEWOPEN')}}>
-                    <CardHeader><CardTitle className="text-5xl text-center">{tickets.filter(ticket => (ticket.ticket_status==='NEW' || ticket.ticket_status==='OPEN') && ticket.inquirer?.user_type==='STUDENT').length}</CardTitle></CardHeader>
+                    <CardHeader><CardTitle className="text-5xl text-center">{ticketCounts.newAndOpen}</CardTitle></CardHeader>
                     <CardFooter className="px-0"><p className="text-sm text-center w-full">NEW & OPEN</p></CardFooter>
                   </Card>
                   <Card className={selected==='NEW'?'py-3 gap-0 pointer-events-none opacity-60 invert':'py-3 gap-0 cursor-pointer invert'} onClick={() => {setSelectedFilter(['NEW']);setSelected('NEW')}}>
-                    <CardHeader><CardTitle className="text-5xl text-center">{tickets.filter(ticket => (ticket.ticket_status==='NEW') && ticket.inquirer?.user_type==='STUDENT').length}</CardTitle></CardHeader>
+                    <CardHeader><CardTitle className="text-5xl text-center">{ticketCounts.new}</CardTitle></CardHeader>
                     <CardFooter className="px-0"><p className="text-sm text-center w-full">NEW</p></CardFooter>
                   </Card>
                   <Card className={selected==='OPEN'?'py-3 gap-0 pointer-events-none opacity-60 invert':'py-3 gap-0 cursor-pointer invert'} onClick={() => {setSelectedFilter(['OPEN']);setSelected('OPEN')}}>
-                    <CardHeader><CardTitle className="text-5xl text-center">{tickets.filter(ticket => (ticket.ticket_status==='OPEN') && ticket.inquirer?.user_type==='STUDENT').length}</CardTitle></CardHeader>
+                    <CardHeader><CardTitle className="text-5xl text-center">{ticketCounts.open}</CardTitle></CardHeader>
                     <CardFooter className="px-0"><p className="text-sm text-center w-full">OPEN</p></CardFooter>
                   </Card>
                   <Card className={selected==='CLOSED'?'py-3 gap-0 pointer-events-none opacity-60 invert':'py-3 gap-0 cursor-pointer invert'} onClick={() => {setSelectedFilter(['CLOSED']);setSelected('CLOSED')}}>
-                    <CardHeader><CardTitle className="text-5xl text-center">{tickets.filter(ticket => (ticket.ticket_status==='CLOSED') && ticket.inquirer?.user_type==='STUDENT').length}</CardTitle></CardHeader>
+                    <CardHeader><CardTitle className="text-5xl text-center">{ticketCounts.closed}</CardTitle></CardHeader>
                     <CardFooter className="px-0"><p className="text-sm text-center w-full">CLOSED</p></CardFooter>
                   </Card>
                   <Button className={selected===''?'pointer-events-none opacity-50 w-full':'w-full bg-blue-500 text-white hover:bg-blue-500 hover:opacity-80'} onClick={() => {setSelectedFilter([]);setSelected('')}}>CLEAR</Button>
@@ -241,23 +277,18 @@ function DispatcherHome() {
                 <TableSkeleton rows={6} />
               ) : (
                 <div className="bg-white rounded-lg shadow-xl flex-grow flex flex-col">
-                  <div className="flex flex-col h-full">
-                    <Table className="h-full">
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-[200px]">Inquiry Date</TableHead>
-                          <TableHead>Ref. No.</TableHead>
-                          <TableHead>Concern</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Assignment</TableHead>
-                          <TableHead className="text-right">Details</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody className="h-full">
-                        <TicketList user_type="STUDENT" filter_status={selectedFilter} tickets={tickets} onAssignmentComplete={handleAssignmentCompletion}/>
-                      </TableBody>
-                    </Table>
-                  </div>
+                  <TicketListWithSearch 
+                    user_type="STUDENT" 
+                    filter_status={selectedFilter} 
+                    tickets={tickets} 
+                    onAssignmentComplete={handleAssignmentCompletion}
+                    showSearchAndPagination={true}
+                    pageSize={10}
+                    paginationInfo={paginationInfo}
+                    onPageChange={handlePageChange}
+                    onSearch={handleSearch}
+                    searchQuery={searchQuery}
+                  />
                 </div>
               )}
             </div>

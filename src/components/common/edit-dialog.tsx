@@ -20,7 +20,8 @@ import { updateUser } from "@/app/actions/updateUser";
 
 interface User {
     id: number,
-    name: string,
+    firstname: string,
+    lastname: string,
     email: string
 }
 
@@ -32,7 +33,8 @@ interface EditDialogProps {
 function EditDialog( { user, onSave } : EditDialogProps ) {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
-    name: user.name,
+    firstname: user.firstname,
+    lastname: user.lastname,
     email: user.email,
   });
 
@@ -46,7 +48,8 @@ function EditDialog( { user, onSave } : EditDialogProps ) {
 
   const handleSave = async () => {
     const hasChanges =
-      formData.name.trim() !== user.name.trim() ||
+      formData.firstname.trim() !== user.firstname.trim() ||
+      formData.lastname.trim() !== user.lastname.trim() ||
       formData.email.trim() !== user.email.trim();
 
     if (!hasChanges) {
@@ -54,7 +57,12 @@ function EditDialog( { user, onSave } : EditDialogProps ) {
       return;
     }
 
-    const res = await updateUser({ id: user.id, name: formData.name, email: formData.email });
+    const res = await updateUser({ 
+      id: user.id, 
+      firstname: formData.firstname, 
+      lastname: formData.lastname, 
+      email: formData.email 
+    });
     if (res.success) {
       onSave?.({ ...user, ...formData });
     }
@@ -75,12 +83,23 @@ function EditDialog( { user, onSave } : EditDialogProps ) {
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">
-              Name
+            <Label htmlFor="firstname" className="text-right">
+              First Name
             </Label>
             <Input
-              id="name"
-              value={formData.name}
+              id="firstname"
+              value={formData.firstname}
+              onChange={handleChange}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="lastname" className="text-right">
+              Last Name
+            </Label>
+            <Input
+              id="lastname"
+              value={formData.lastname}
               onChange={handleChange}
               className="col-span-3"
             />

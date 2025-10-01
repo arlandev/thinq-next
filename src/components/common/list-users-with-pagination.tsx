@@ -192,7 +192,8 @@ export default function UserListWithPagination({ user_role }: UserListWithPagina
                         <TableCell>
                           <EditDialog user={{
                             id: user.id,
-                            name: `${user.user_firstname} ${user.user_lastname}`,
+                            firstname: user.user_firstname,
+                            lastname: user.user_lastname,
                             email: user.user_email,
                           }} onSave={handleUserUpdated} />
                         </TableCell>

@@ -4,24 +4,21 @@ import { db } from '@/server/db'
 
 export interface UpdateUserInput {
   id: number
-  name: string
+  firstname: string
+  lastname: string
   email: string
 }
 
 export async function updateUser(input: UpdateUserInput) {
-  const { id, name, email } = input
+  const { id, firstname, lastname, email } = input
 
   try {
-    const trimmedName = (name ?? '').trim()
-    const [firstName, ...rest] = trimmedName.split(' ')
-    const lastName = rest.join(' ').trim()
-
     const updated = await db.user.update({
       where: { id },
       data: {
         user_email: email,
-        ...(firstName ? { user_firstname: firstName } : {}),
-        ...(lastName ? { user_lastname: lastName } : {}),
+        user_firstname: firstname,
+        user_lastname: lastname,
       },
     })
 

@@ -104,18 +104,25 @@ export async function getPaginationForTickets(params: {
     concern?: string;
     assigneeId?: number;
     inquirerId?: number;
+    userType?: string;
+    statusFilters?: string[];
+    searchQuery?: string;
 }): Promise<{
     tickets: any[];
     pagination: PaginationInfo;
 }> {
     try {
-        const { page, pageSize, status, concern, assigneeId, inquirerId } = params;
+        const { page, pageSize, status, concern, assigneeId, inquirerId, userType, statusFilters, searchQuery } = params;
 
         // Build where clause for filtering
         const whereClause: any = {};
         
         if (status) {
             whereClause.ticket_status = status;
+        }
+        
+        if (statusFilters && statusFilters.length > 0) {
+            whereClause.ticket_status = { in: statusFilters };
         }
         
         if (concern) {
@@ -128,6 +135,28 @@ export async function getPaginationForTickets(params: {
         
         if (inquirerId) {
             whereClause.inquirer_id = inquirerId;
+        }
+
+        // Filter by user type through inquirer relation
+        if (userType) {
+            whereClause.inquirer = {
+                user_type: userType
+            };
+        }
+
+        // Add search functionality
+        if (searchQuery) {
+            whereClause.OR = [
+                { reference_number: { contains: searchQuery, mode: 'insensitive' } },
+                { ticket_concern: { contains: searchQuery, mode: 'insensitive' } },
+                { ticket_subconcern: { contains: searchQuery, mode: 'insensitive' } },
+                { ticket_details: { contains: searchQuery, mode: 'insensitive' } },
+                { inquirer: { user_firstname: { contains: searchQuery, mode: 'insensitive' } } },
+                { inquirer: { user_lastname: { contains: searchQuery, mode: 'insensitive' } } },
+                { inquirer: { user_email: { contains: searchQuery, mode: 'insensitive' } } },
+                { assignee: { user_firstname: { contains: searchQuery, mode: 'insensitive' } } },
+                { assignee: { user_lastname: { contains: searchQuery, mode: 'insensitive' } } }
+            ];
         }
 
         // Run count and page query in a single transaction to avoid extra roundtrips

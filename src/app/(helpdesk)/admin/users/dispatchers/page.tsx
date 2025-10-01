@@ -1,8 +1,8 @@
-import UserList from "@/components/common/list-users";
+import UserListWithPagination from "@/components/common/list-users-with-pagination";
 
 function DispatcherAccountsPage() {
   return (
-    <UserList user_role="DISPATCHER"/>
+    <UserListWithPagination user_role="DISPATCHER"/>
   )
 }
 

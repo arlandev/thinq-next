@@ -118,6 +118,17 @@ export default function UserList({user_role}:UserListProps) {
     setFilteredUsers(filteredUsers);
   }, [completeUsers, searchQuery, user_role]);
 
+  const handleUserUpdated = async () => {
+    try {
+      const users = await readUsers();
+      setCompleteUsers(users as unknown as User[]);
+      toast.success("Account has been updated");
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      toast.error("Failed to refresh users list");
+    }
+  };
+
   const handleActivateDeactivate = async () => {
     let isMounted = true;
     
@@ -203,9 +214,10 @@ export default function UserList({user_role}:UserListProps) {
                         <TableCell>
                             <EditDialog user={{
                                 id: user.id,
-                                name: `${user.user_firstname} ${user.user_lastname}`,
+                                firstname: user.user_firstname,
+                                lastname: user.user_lastname,
                                 email: user.user_email,
-                            }} />
+                            }} onSave={handleUserUpdated} />
                         </TableCell>
                         <TableCell>{user.id}</TableCell>
                             <TableCell>{user.user_email}</TableCell>
