@@ -151,7 +151,7 @@ export default function UserListWithPagination({ user_role }: UserListWithPagina
       <AccountsPageTitle userType={user_role}/>
 
       {/* Search Command Component */}
-      <div className="mb-6 w-1/4 flex flex-row gap-2">
+      <div className="mb-6 w-1/3 flex flex-row gap-2">
         <Command className="rounded-lg border shadow-md">
           <CommandInput 
             placeholder="Search users" 
@@ -162,6 +162,10 @@ export default function UserListWithPagination({ user_role }: UserListWithPagina
         <Button className="rounded-lg border shadow-md" 
           onClick={() => fetchUsers(1, searchQuery)}>
             Search
+        </Button>
+        <Button className="rounded-lg border shadow-md" variant="ghost"
+          onClick={() => setSearchQuery("")}>
+            Reset
         </Button>
       </div>
 
