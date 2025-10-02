@@ -95,6 +95,13 @@ export default function TicketList({
     const [currentPage, setCurrentPage] = useState(1);
 
 
+    const getTicketAge = (submittedDate: Date): number => {
+      const today = new Date();
+      const diffTime = today.getTime() - submittedDate.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays;
+    };
+  
   // Filter and search logic
   const filteredAndSearchedTickets = useMemo(() => {
     let filtered = tickets.filter(ticket => 
@@ -116,6 +123,24 @@ export default function TicketList({
         ticket.assignee?.user_lastname?.toLowerCase().includes(searchLower)
       );
     }
+
+    // Sort by age (oldest first for open tickets, then closed tickets)
+    filtered.sort((a, b) => {
+      // If both are closed, maintain original order
+      if (a.ticket_status === 'CLOSED' && b.ticket_status === 'CLOSED') {
+        return 0;
+      }
+      // If only a is closed, b comes first
+      if (a.ticket_status === 'CLOSED' && b.ticket_status !== 'CLOSED') {
+        return 1;
+      }
+      // If only b is closed, a comes first
+      if (a.ticket_status !== 'CLOSED' && b.ticket_status === 'CLOSED') {
+        return -1;
+      }
+      // If both are open, sort by age (oldest first)
+      return getTicketAge(b.ticket_submitteddate) - getTicketAge(a.ticket_submitteddate);
+    });
 
     return filtered;
   }, [tickets, filter_status, user_type, searchTerm]);
@@ -204,6 +229,20 @@ export default function TicketList({
           {paginatedTickets.map((ticket: Ticket) => (
             <TableRow key={ticket.ticket_id}>
               <TableCell className="font-medium">{ticket.ticket_submitteddate.toLocaleDateString('en-CA').replace(/-/g, '/')}</TableCell>
+              <TableCell className="text-center">
+                {ticket.ticket_status === 'CLOSED' ? (
+                  <span className="text-gray-400 text-xs">-</span>
+                ) : (
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    getTicketAge(ticket.ticket_submitteddate) === 0 ? 'bg-green-100 text-green-800' :
+                    getTicketAge(ticket.ticket_submitteddate) <= 3 ? 'bg-blue-100 text-blue-800' :
+                    getTicketAge(ticket.ticket_submitteddate) <= 7 ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-red-100 text-red-800'
+                  }`}>
+                    {getTicketAge(ticket.ticket_submitteddate)}
+                  </span>
+                )}
+              </TableCell>
               <TableCell>
                 {ticket.reference_number === null ? "N/A" : ticket.reference_number}
               </TableCell>
@@ -245,7 +284,7 @@ export default function TicketList({
           {/* No Results Message */}
           {paginatedTickets.length === 0 && (
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+              <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                 {searchTerm.trim() ? 'No tickets found matching your search.' : 'No tickets available.'}
               </TableCell>
             </TableRow>
@@ -310,6 +349,7 @@ export function TicketListWithSearch(props: TicketListWithSearchProps) {
           <TableHeader>
             <TableRow>
               <TableHead className="w-[200px]">Inquiry Date</TableHead>
+              <TableHead className="w-[100px]">Age (Days)</TableHead>
               <TableHead>Ref. No.</TableHead>
               <TableHead>Concern</TableHead>
               <TableHead>Status</TableHead>

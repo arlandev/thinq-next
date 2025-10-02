@@ -20,14 +20,14 @@ export default function AreaChartVisual({title,chartConfig,chartData,dataKey,dat
             <CardHeader>
               <CardTitle className="text-lg">{title}</CardTitle>
             </CardHeader>
-            <CardContent className="flex justify-center items-center w-full h-100">
-              <div className="w-full h-100 mx-auto my-auto">
+            <CardContent className="flex justify-center items-center w-full h-full">
+              <div className="w-full h-full mx-auto my-auto">
                 <ResponsiveContainer width="100%" height="100%">
                     <ChartContainer config={chartConfig}>
                     <AreaChart
                         accessibilityLayer
                         data={chartData}
-                        margin={{ top:20, left: 12, right: 12 }}
+                        margin={{ top:5, left: 12, right: 12, bottom: 5 }}
                     >
                         <CartesianGrid vertical={false} />
                         <XAxis

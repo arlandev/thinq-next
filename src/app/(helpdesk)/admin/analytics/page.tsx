@@ -297,70 +297,106 @@ export default function AdminAnalyticsPage() {
 
   return (
     <PageLayout navbar={<NavBar navBarLink="/admin" navBarLinkName="" />}>
-      <div className="grid grid-cols-7 grid-rows-auto gap-5">
-        <div className="row-start-1">
-          <Link href="/admin"><Button variant="default" className="">Back</Button></Link>
+      <div className="space-y-6">
+        {/* Header with Back button and Filters */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <Link href="/admin">
+            <Button variant="default">Back</Button>
+          </Link>
+          
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+            <div className="flex-1 sm:flex-none sm:w-48">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Ticket Status"/>
+                </SelectTrigger>
+                <SelectContent>
+                  {[...new Set(tickets.map(ticket => ticket.ticket_status))].map((status) => (
+                    <SelectItem key={status} value={status} onClick={() => setStatusFilter(status)}>{status}</SelectItem>
+                  ))}
+                  <Separator className="my-1"/>
+                  <a className="ml-2 text-xs opacity-50 hover:opacity-25 cursor-pointer" onClick={() => setStatusFilter('')}>Clear Selection</a>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex-1 sm:flex-none sm:w-48">
+              <Select value={concernFilter} onValueChange={setConcernFilter}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Concern"/>
+                </SelectTrigger>
+                <SelectContent>
+                  {[...new Set(tickets.map(ticket => ticket.ticket_concern))].map((concern) => (
+                    <SelectItem key={concern} value={concern} onClick={() => setConcernFilter(concern)}>{concern}</SelectItem>
+                  ))}
+                  <Separator className="my-1"/>
+                  <a className="ml-2 text-xs opacity-50 hover:opacity-25 cursor-pointer" onClick={() => setConcernFilter('')}>Clear Selection</a>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
 
-        {/* filter */}
-        <div className="row-start-1 col-end-8 place-items-end">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Ticket Status"/>
-            </SelectTrigger>
-            <SelectContent>
-              {[...new Set(tickets.map(ticket => ticket.ticket_status))].map((status) => (
-                <SelectItem key={status} value={status} onClick={() => setStatusFilter(status)}>{status}</SelectItem>
-              ))}
-              <Separator className="my-1"/>
-              <a className="ml-2 text-xs opacity-50 hover:opacity-25 cursor-pointer" onClick={() => setStatusFilter('')}>Clear Selection</a>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="row-start-1 col-end-7 col-span-2 place-items-end">
-          <Select value={concernFilter} onValueChange={setConcernFilter}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Concern"/>
-            </SelectTrigger>
-            <SelectContent>
-              {[...new Set(tickets.map(ticket => ticket.ticket_concern))].map((concern) => (
-                <SelectItem key={concern} value={concern} onClick={() => setConcernFilter(concern)}>{concern}</SelectItem>
-              ))}
-              <Separator className="my-1"/>
-              <a className="ml-2 text-xs opacity-50 hover:opacity-25 cursor-pointer" onClick={() => setConcernFilter('')}>Clear Selection</a>
-            </SelectContent>
-          </Select>
-        </div>
-
-
-        {/* number cards */}
-        <div className="row-start-2 col-span-1">
+        {/* Number Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <NumberCard count={filteredTickets.filter(ticket => ticket.ticket_status==='NEW'||ticket.ticket_status==='OPEN').length} title="Pending Tickets" />
-        </div>
-        <div className="row-start-3 col-span-1">
           <NumberCard count={filteredTickets.filter(ticket => ticket.assignee_id===null).length} title="Unassigned Tickets" />
-        </div>
-        <div className="row-start-4 col-span-1">
           <NumberCard count={filteredTickets.filter(ticket => ticket.ticket_status==='CLOSED').length} title="Resolved Tickets" />
-        </div>
-        <div className="row-start-5 col-span-1">
           <NumberCard count={ratedTickets.length > 0 ? Number((totalRating/ratedTickets.length).toFixed(1)) : 0} title="Average Ticket Rating" />
         </div>
 
-        {/* pie chart ticket status */}
-        <div className="row-start-2 row-span-2 col-span-2 col-start-2">
-          <PieChartVisual 
-            title="No. of Tickers per Status"
-            chartConfig={chartConfigStatus}
-            chartData={chartDataStatus}
-            dataKey="tickets"
-            nameKey="status"
-          />
+        {/* Charts Grid - 2x2 above, Area chart below */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Ticket Status Pie Chart */}
+          <div>
+            <PieChartVisual 
+              title="No. of Tickets per Status"
+              chartConfig={chartConfigStatus}
+              chartData={chartDataStatus}
+              dataKey="tickets"
+              nameKey="status"
+            />
+          </div>
+
+          {/* Ticket Rating Pie Chart */}
+          <div>
+            <PieChartVisual 
+                title="No. of Tickets per Rating"
+                chartConfig={chartConfigRating}
+                chartData={chartDataRating.filter(rating => rating.tickets > 0)}
+                dataKey="tickets"
+                nameKey="rating"
+              />
+          </div>
+
+          {/* Top 5 Concerns Bar Chart */}
+          <div>
+            <BarChartVisualHorizontal 
+              title="Top 5 Concerns"
+              chartConfig={chartConfigConcern}
+              chartData={chartDataConcerns}
+              dataKeyX="tickets"
+              dataKeyY="concern"
+              fill={chartConfigConcern.concern.color}
+            />
+          </div>
+
+          {/* Days to Resolve Histogram */}
+          <div>
+            <BarChartVisualVertical
+              title="No. of Days to Resolve Ticket"
+              chartConfig={chartConfigResolution}
+              chartData={chartDataResolution}
+              dataKeyX="days"
+              dataKeyY="tickets"
+              fill={chartConfigResolution.concern.color}
+            />
+          </div>
         </div>
 
-        {/* area chart */}
-        <div className="row-start-2 row-span-3 col-span-4 col-start-4">
+        {/* Area Chart - Full Width Below */}
+        <div className="w-full">
           <AreaChartVisual 
             title="No. of Pending & Closed Ticket Over Time"
             chartConfig={chartConfigOpenClosed}
@@ -372,42 +408,6 @@ export default function AdminAnalyticsPage() {
             fill2={chartConfigOpenClosed.closed.color}
           />
         </div>
-
-        {/* bar chart top 5 concerns */}
-        <div className="row-start-4 row-span-3 col-span-2 col-start-2">
-          <BarChartVisualHorizontal 
-            title="Top 5 Concerns"
-            chartConfig={chartConfigConcern}
-            chartData={chartDataConcerns}
-            dataKeyX="tickets"
-            dataKeyY="concern"
-            fill={chartConfigConcern.concern.color}
-          />
-        </div>
-
-        {/* histogram */}
-        <div className="row-start-5 row-span-2 col-span-2 col-start-4">
-          <BarChartVisualVertical
-            title="No. of Days to Resolve Ticket"
-            chartConfig={chartConfigResolution}
-            chartData={chartDataResolution}
-            dataKeyX="days"
-            dataKeyY="tickets"
-            fill={chartConfigResolution.concern.color}
-          />
-        </div>
-
-        {/* pie chart ticket rating */}
-        <div className="row-start-5 row-span-2 col-span-2 col-start-6">
-          <PieChartVisual 
-              title="No. of Tickets per Rating"
-              chartConfig={chartConfigRating}
-              chartData={chartDataRating.filter(rating => rating.tickets > 0)}
-              dataKey="tickets"
-              nameKey="rating"
-            />
-        </div>
-
       </div>
     </PageLayout>
   )

@@ -14,19 +14,19 @@ interface BarChartVisualHorizontalProps{
 
 export default function BarChartVisualHorizontal({title,chartConfig,chartData,dataKeyX,dataKeyY,fill}:BarChartVisualHorizontalProps) {
     return(
-        <Card className="gap-1 pb-1 pt-5 h-full grid grid-rows-[auto_auto]">
-            <CardHeader>
+        <Card className="h-full flex flex-col">
+            <CardHeader className="pb-2">
               <CardTitle className="text-lg">{title}</CardTitle>
             </CardHeader>
-            <CardContent className="flex justify-center items-center w-full">
-              <div className="w-full h-full mx-auto my-auto">
+            <CardContent className="flex-1 p-4">
+              <div className="w-full h-full min-h-[250px]">
                 <ResponsiveContainer width="100%" height="100%">
                     <ChartContainer config={chartConfig}>
                     <BarChart
                         accessibilityLayer
                         data={chartData}
                         layout="vertical"
-                        margin={{ left: 75, }}
+                        margin={{ top: 20, left: 75, right: 20, bottom: 20 }}
                     >
                         <XAxis type="number" dataKey={dataKeyX} hide /> 
                         <YAxis
