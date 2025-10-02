@@ -1,4 +1,10 @@
+import RouteProtection from "@/components/common/route-protection";
+
 export default function InquirerTicketDetailsPage() {
-    return <div>Inquirer Ticket Details Page</div>;
-  }
+  return (
+    <RouteProtection requiredRole="inquirer">
+      <div>Inquirer Ticket Details Page</div>
+    </RouteProtection>
+  );
+}
   

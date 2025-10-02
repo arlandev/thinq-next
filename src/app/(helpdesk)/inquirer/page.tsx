@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import NavBar from "@/components/common/navbar";
 import PageLayout from "@/components/common/page-layout";
 import WelcomeText from "@/components/common/welcome-text";
+import RouteProtection from "@/components/common/route-protection";
 import { getUserSession } from "@/lib/session";
 
 // shadcn
@@ -20,11 +21,12 @@ function InquirerHome() {
     setUserSession(session);
   }, []);
   return (
-    <PageLayout navbar={<NavBar navBarLink="/inbox" navBarLinkName="Inbox" />}>
-      <WelcomeText 
-        firstName={userSession?.user_firstname || "User"} 
-        lastName={userSession?.user_lastname || ""} 
-      />
+    <RouteProtection requiredRole="inquirer">
+      <PageLayout navbar={<NavBar navBarLink="/inquirer" navBarLinkName="Home" />}>
+        <WelcomeText 
+          firstName={userSession?.user_firstname || "User"} 
+          lastName={userSession?.user_lastname || ""} 
+        />
 
       <div className="grid grid-cols-5 gap-7 h-[60vh] content-center">
         <div className="col-span-1 col-start-2 justify-self-center w-full">
@@ -66,8 +68,9 @@ function InquirerHome() {
           </Link>
         </div>
         
-      </div>
-    </PageLayout>
+        </div>
+      </PageLayout>
+    </RouteProtection>
   );
 };
 

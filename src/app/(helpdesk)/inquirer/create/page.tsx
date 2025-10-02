@@ -52,6 +52,7 @@ import { submitForm } from "@/app/actions/submitForm";
 import { readConcerns } from "@/app/actions/readConcerns";
 import { readSubconcerns } from "@/app/actions/readSubconcerns";
 import { getUserSession, type UserSession } from "@/lib/session";
+import RouteProtection from "@/components/common/route-protection";
 
 interface Concern {
   concern_id: number;
@@ -598,7 +599,8 @@ const InquiryForm = () => {
   ];
 
   return (
-    <PageLayout navbar={<NavBar navBarLink="/inbox" navBarLinkName="Inbox" />}>
+    <RouteProtection requiredRole="inquirer">
+      <PageLayout navbar={<NavBar navBarLink="/inquirer/inbox" navBarLinkName="Inbox" />}>
       <div className="w-full my-auto font-sub">
         <div className="justify-self-center grid grid-cols-8 w-1/2 mb-5">
           <Progress
@@ -686,7 +688,8 @@ const InquiryForm = () => {
           </Card>
         </form>
       </div>
-    </PageLayout>
+      </PageLayout>
+    </RouteProtection>
   );
 };
 

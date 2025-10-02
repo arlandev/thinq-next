@@ -11,50 +11,59 @@ import { setUserSession } from "@/lib/session";
 export default function Home() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const user = await readUser(username, password);
+    setIsLoading(true);
 
-    if (user) {
-      // Store user session data
-      setUserSession({
-        id: user.id,
-        user_email: user.user_email,
-        user_firstname: user.user_firstname,
-        user_lastname: user.user_lastname,
-        user_role: user.user_role,
-        user_type: user.user_type,
-        user_affiliation: user.user_affiliation,
-      });
+    try {
+      const user = await readUser(username, password);
 
-      // check user role, then push route to appropriate page depending on role
-      const userRole = user.user_role.toLowerCase();
-      console.log(userRole);
+      if (user) {
+        // Store user session data
+        setUserSession({
+          id: user.id,
+          user_email: user.user_email,
+          user_firstname: user.user_firstname,
+          user_lastname: user.user_lastname,
+          user_role: user.user_role,
+          user_type: user.user_type,
+          user_affiliation: user.user_affiliation,
+        });
 
-      switch (userRole) {
-        case "admin":
-          router.push("/admin");
-          break;
-        case "inquirer":
-          router.push("/inquirer");
-          break;
-        case "personnel":
-          router.push("/personnel");
-          break;
-        case "dispatcher":
-          router.push("/dispatcher");
-          break;
-        default:
-          alert("Invalid username or password");
+        // check user role, then push route to appropriate page depending on role
+        const userRole = user.user_role.toLowerCase();
+        console.log(userRole);
+
+        switch (userRole) {
+          case "admin":
+            router.push("/admin");
+            break;
+          case "inquirer":
+            router.push("/inquirer");
+            break;
+          case "personnel":
+            router.push("/personnel");
+            break;
+          case "dispatcher":
+            router.push("/dispatcher");
+            break;
+          default:
+            alert("Invalid username or password");
+        }
+      } else {
+        // show error message
+        alert("Invalid username or password");
       }
-    } else {
-      // show error message
-      alert("Invalid username or password");
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("An error occurred during login");
+    } finally {
+      setIsLoading(false);
     }
-
   };
 
   return (
@@ -111,9 +120,21 @@ export default function Home() {
 
             <button
               type="submit"
-              className="mx-auto w-50 mt-8 bg-white hover:bg-gray-100 font-semibold py-2 px-4 rounded shadow cursor-pointer"
+              disabled={isLoading}
+              className={`mx-auto w-50 mt-8 font-semibold py-2 px-4 rounded shadow cursor-pointer flex items-center justify-center gap-2 ${
+                isLoading 
+                  ? 'bg-gray-300 cursor-not-allowed' 
+                  : 'bg-white hover:bg-gray-100'
+              }`}
             >
-              LOGIN
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                  LOGGING IN...
+                </>
+              ) : (
+                'LOGIN'
+              )}
             </button>
           </form>
         </div>
