@@ -1,8 +1,11 @@
 import UserListWithPagination from "@/components/common/list-users-with-pagination";
+import RouteProtection from "@/components/common/route-protection";
 
 function DispatcherAccountsPage() {
   return (
-    <UserListWithPagination user_role="DISPATCHER"/>
+    <RouteProtection requiredRole="admin">
+      <UserListWithPagination user_role="DISPATCHER"/>
+    </RouteProtection>
   )
 }
 

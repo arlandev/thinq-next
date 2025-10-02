@@ -8,13 +8,22 @@ export interface UserSession {
   user_role: string;
   user_type: string;
   user_affiliation: string;
+  createdAt: number;
+  expiresAt: number;
 }
 
 const SESSION_KEY = 'thinq_user_session';
+const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
-export const setUserSession = (user: UserSession): void => {
+export const setUserSession = (user: Omit<UserSession, 'createdAt' | 'expiresAt'>): void => {
   if (typeof window !== 'undefined') {
-    localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+    const now = Date.now();
+    const sessionData: UserSession = {
+      ...user,
+      createdAt: now,
+      expiresAt: now + SESSION_DURATION
+    };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
   }
 };
 
@@ -23,7 +32,16 @@ export const getUserSession = (): UserSession | null => {
     const sessionData = localStorage.getItem(SESSION_KEY);
     if (sessionData) {
       try {
-        return JSON.parse(sessionData);
+        const session: UserSession = JSON.parse(sessionData);
+        
+        // Check if session has expired
+        if (Date.now() > session.expiresAt) {
+          console.log('Session expired, clearing...');
+          clearUserSession();
+          return null;
+        }
+        
+        return session;
       } catch (error) {
         console.error('Error parsing session data:', error);
         return null;
@@ -41,4 +59,15 @@ export const clearUserSession = (): void => {
 
 export const isUserLoggedIn = (): boolean => {
   return getUserSession() !== null;
+};
+
+export const getSessionTimeRemaining = (): number => {
+  const session = getUserSession();
+  if (!session) return 0;
+  return Math.max(0, session.expiresAt - Date.now());
+};
+
+export const isSessionExpired = (): boolean => {
+  const session = getUserSession();
+  return session === null;
 };
