@@ -7,6 +7,15 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table"
 import { toast } from "sonner"
+import { AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger, } from "@/components/ui/alert-dialog"
 
 import { readConcerns } from "@/app/actions/readConcerns"
 import { supabase } from "@/lib/supabaseClient"
@@ -33,6 +42,19 @@ export default function AdminFAQsPage() {
         setFiles(prev => ({ ...prev, [concern]: file }))
     }
 
+    const handleDelete = async (concern: string) => {
+        const { error } = await supabase.storage
+          .from("faqs")
+          .remove([`${concern}.pdf`])
+        if (error) {
+          console.error(error)
+          toast.error("Delete failed")
+        } else {
+          setFaqMap(prev => ({ ...prev, [concern]: false }))
+          toast.success(`FAQ for ${concern} deleted successfully!`)
+        }
+    }
+
     const handleUpload = async (concern: string, file:File) => {
         // const file = files[concern]
         if (!file) return alert("No file chosen")
@@ -47,8 +69,9 @@ export default function AdminFAQsPage() {
           console.error(error)
           alert("Upload failed")
         } else {
-          alert(`FAQ for ${concern} uploaded!`)
+          setFaqMap(prev => ({...prev, [concern]: true}))
           setFiles(prev => ({ ...prev, [concern]: null }))
+          toast.success(`FAQ for ${concern} uploaded!`)
         }
     
         setUploading(prev => ({ ...prev, [concern]: false }))
@@ -152,9 +175,24 @@ export default function AdminFAQsPage() {
                                                         title="Re-Upload"
                                                     />
                                                 </div>
-                                                <Button className="cursor-pointer col-span-1 w-min" variant="destructive" title="Delete">
-                                                    <CircleX color="#ffffff" />
-                                                </Button>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger title="Delete">
+                                                        <div className="cursor-pointer col-span-1 w-min"><CircleX color="#ff0000" className="cursor-pointer"/></div>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                This action cannot be undone. This will permanently delete the uploaded FAQ.
+                                                                <br/><br/><b>Note: </b>You may re-upload the FAQ after deletion.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => handleDelete(concern.concern_title)}>Continue</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
                                             </div> :
                                             <div className="flex flex-items gap-1">
                                                 <div className="w-full">
